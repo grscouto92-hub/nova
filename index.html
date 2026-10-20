@@ -1,0 +1,3353 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Lar em Dia — Organização das Tarefas da Família</title>
+  <!-- Tailwind CSS via CDN for responsive utility-first styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Plus Jakarta Sans for warm, legible typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', ' system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+            warm: {
+              50: '#fafaf9',
+              100: '#f5f5f4',
+              200: '#e7e5e4',
+              800: '#292524',
+              900: '#1c1917',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    h1, h2, h3, .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.4);
+      border-radius: 9999px;
+    }
+    /* Checkbox bounce animation */
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      70% { transform: scale(1.03); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    /* Confetti canvas overlay */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      width: 100%;
+      height: 100%;
+    }
+    /* Safe area padding for mobile bottom navigation */
+    .pb-safe {
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    }
+  </style>
+</head>
+<body class="bg-warm-50 dark:bg-warm-900 text-stone-800 dark:text-stone-100 min-h-screen transition-colors duration-200 selection:bg-brand-500 selection:text-white">
+
+  <!-- Canvas de Confete para comemoração de tarefas concluídas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Cabeçalho Fixo Superior -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-warm-800/90 backdrop-blur-md border-b border-stone-200/80 dark:border-stone-700/80">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <!-- Logo & Nome da Família -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-emerald-600 flex items-center justify-center text-white shadow-sm shrink-0 text-xl" aria-hidden="true">
+          🏡
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-bold text-base sm:text-lg leading-tight truncate">Lar em Dia</h1>
+            <span id="sync-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              Local
+            </span>
+          </div>
+          <button id="btn-open-family-code" type="button" class="text-xs text-stone-500 dark:text-stone-400 hover:text-brand-600 dark:hover:text-brand-400 flex items-center gap-1 truncate transition-colors" title="Trocar código da família">
+            <span>Código:</span>
+            <strong id="header-family-code" class="font-semibold text-stone-700 dark:text-stone-200 underline decoration-dotted">familia-silva-2026</strong>
+            <span>✏️</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas do Topo -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button id="btn-open-auth" type="button" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition-colors flex items-center gap-1.5" title="Entrar ou criar conta com E-mail e Senha">
+          <span>🔐</span>
+          <span id="auth-btn-label" class="max-w-[110px] truncate">Entrar</span>
+        </button>
+        <button id="btn-seed-top" type="button" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 transition-colors hidden sm:inline-flex" title="Carregar dados de exemplo para testar">
+          ✨ Carregar Exemplo
+        </button>
+        <button id="btn-theme-toggle" type="button" aria-label="Alternar tema claro ou escuro" class="p-2.5 rounded-xl bg-stone-100 dark:bg-stone-700/70 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors">
+          <span id="theme-icon" class="text-base leading-none">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Aviso de Modo Offline / Fallback -->
+  <div id="fallback-banner" class="bg-amber-50/90 dark:bg-amber-950/50 border-b border-amber-200 dark:border-amber-800/60 px-4 py-2 text-xs text-amber-900 dark:text-amber-200">
+    <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <p id="fallback-banner-text" class="flex items-center gap-1.5">
+        <span>⚡</span>
+        <span><strong>Conectando ao Firebase...</strong> Faça login com seu E-mail e Senha para sincronizar em tempo real com outros celulares.</span>
+      </p>
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="btn-banner-auth" type="button" class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-colors">
+          🔐 Entrar com E-mail
+        </button>
+        <button id="btn-dismiss-banner" type="button" class="text-amber-700 dark:text-amber-300 font-semibold hover:underline">Entendi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal com Abas -->
+  <main class="max-w-5xl mx-auto px-4 pt-4 pb-safe">
+
+    <!-- Barra de Progresso Geral do Dia (Sempre visível nas abas Hoje e Semana) -->
+    <section id="house-progress-card" class="mb-5 bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-5 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="current-date-label" class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Domingo, 19/10/2026</span>
+            <span id="gamification-pill" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+              🏆 <span id="weekly-points-badge">0 pts na semana</span>
+            </span>
+          </div>
+          <h2 id="house-status-title" class="font-display font-bold text-lg sm:text-xl text-stone-900 dark:text-white mt-0.5">
+            Casa 0% em dia hoje
+          </h2>
+        </div>
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+          <button id="btn-quick-new-task" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all">
+            <span>➕</span>
+            <span>Nova Tarefa</span>
+          </button>
+          <button id="btn-auto-distribute-top" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 font-semibold text-xs sm:text-sm transition-all" title="Distribuir tarefas de forma equilibrada">
+            <span>⚖️</span>
+            <span>Divisão Justa</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra visual -->
+      <div class="w-full h-3.5 bg-stone-100 dark:bg-stone-700 rounded-full overflow-hidden p-0.5">
+        <div id="house-progress-bar" class="h-full bg-gradient-to-r from-brand-500 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+      <div class="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 mt-2">
+        <span id="house-progress-counts">0 de 0 tarefas concluídas hoje</span>
+        <span id="house-overdue-indicator" class="hidden font-semibold text-rose-600 dark:text-rose-400">⚠️ 0 atrasadas na semana</span>
+      </div>
+
+      <!-- Banner de Parabéns quando 100% concluído -->
+      <div id="congrats-banner" class="hidden mt-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-brand-500/15 to-teal-500/15 border border-brand-400/40 flex items-center justify-between gap-3 animate-pop">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🎉</span>
+          <div>
+            <p class="font-display font-bold text-sm text-brand-800 dark:text-brand-200">Parabéns, família! Tudo em dia por hoje!</p>
+            <p class="text-xs text-stone-600 dark:text-stone-300">Todas as tarefas programadas para hoje foram concluídas. Aproveitem o descanso!</p>
+          </div>
+        </div>
+        <button id="btn-retrigger-confetti" type="button" class="px-3 py-1.5 rounded-xl bg-brand-600 text-white text-xs font-semibold shrink-0 hover:bg-brand-700">
+          Soltar Confete 🎊
+        </button>
+      </div>
+    </section>
+
+    <!-- Barra de Filtros (Usada em Hoje, Semana e Tarefas) -->
+    <section id="shared-filters" class="mb-5 bg-white dark:bg-warm-800 rounded-2xl p-3 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <div>
+          <label for="filter-member" class="block text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-400 mb-1">Filtrar por Pessoa</label>
+          <select id="filter-member" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/60 border border-stone-200 dark:border-stone-600 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="all">👨‍👩‍👧‍👦 Todos da família</option>
+          </select>
+        </div>
+        <div>
+          <label for="filter-room" class="block text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-400 mb-1">Cômodo / Área</label>
+          <select id="filter-room" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/60 border border-stone-200 dark:border-stone-600 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="all">🏠 Todos os cômodos</option>
+            <option value="cozinha">🍳 Cozinha</option>
+            <option value="sala">🛋️ Sala</option>
+            <option value="banheiro">🚿 Banheiro</option>
+            <option value="quarto">🛏️ Quarto</option>
+            <option value="quintal">🌿 Quintal</option>
+            <option value="lavanderia">🧺 Lavanderia</option>
+            <option value="geral">✨ Geral</option>
+          </select>
+        </div>
+        <div>
+          <label for="filter-status" class="block text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-400 mb-1">Status</label>
+          <select id="filter-status" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/60 border border-stone-200 dark:border-stone-600 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="all">📋 Todas as tarefas</option>
+            <option value="pending">⏳ Pendentes</option>
+            <option value="completed">✅ Concluídas</option>
+            <option value="overdue">🚨 Atrasadas</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ABA 1: HOJE (Visão do Dia Agrupada por Pessoa + Atrasadas) -->
+    <!-- ========================================================= -->
+    <section id="tab-hoje" class="tab-panel space-y-5">
+      <!-- Bloco de Tarefas Atrasadas da Semana -->
+      <div id="overdue-section" class="hidden bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/70 rounded-3xl p-4 sm:p-5">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">⏰</span>
+            <div>
+              <h3 class="font-display font-bold text-base text-rose-900 dark:text-rose-200">Tarefas Atrasadas desta Semana</h3>
+              <p class="text-xs text-rose-700 dark:text-rose-300">Pendentes de dias anteriores que ainda precisam de cuidado</p>
+            </div>
+          </div>
+          <span id="overdue-count-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-100">0</span>
+        </div>
+        <div id="overdue-list" class="space-y-2.5"></div>
+      </div>
+
+      <!-- Pedidos de Troca Pendentes -->
+      <div id="swaps-banner-hoje" class="hidden bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/70 rounded-3xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-display font-bold text-sm text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+            <span>🔄</span> Pedidos de Troca de Tarefa
+          </h3>
+        </div>
+        <div id="swaps-list-hoje" class="space-y-2"></div>
+      </div>
+
+      <!-- Container das Tarefas de Hoje por Membro -->
+      <div id="today-tasks-by-member" class="space-y-4"></div>
+
+      <!-- Ranking Amigável Rápido (Opcional conforme configuração) -->
+      <div id="today-ranking-card" class="bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-5 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🏅</span>
+            <div>
+              <h3 class="font-display font-bold text-base">Placar Amigável da Semana</h3>
+              <p class="text-xs text-stone-500 dark:text-stone-400">Pontos acumulados por esforço nas tarefas concluídas</p>
+            </div>
+          </div>
+          <button type="button" data-goto-tab="familia" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">Ver carga completa →</button>
+        </div>
+        <div id="today-ranking-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ABA 2: SEMANA (Calendário / Grade Dias x Pessoas)          -->
+    <!-- ========================================================= -->
+    <section id="tab-semana" class="tab-panel hidden space-y-5">
+      <!-- Controles de Navegação da Semana -->
+      <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 shadow-sm border border-stone-200/70 dark:border-stone-700/70 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="font-display font-bold text-lg">Grade da Semana (Dom a Sáb)</h2>
+          <p id="week-range-label" class="text-xs text-stone-500 dark:text-stone-400">18/10/2026 a 24/10/2026</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-prev-week" type="button" class="px-3 py-2 rounded-xl bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 text-xs font-semibold">← Anterior</button>
+          <button id="btn-current-week" type="button" class="px-3 py-2 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 text-xs font-semibold border border-brand-200 dark:border-brand-800">Hoje</button>
+          <button id="btn-next-week" type="button" class="px-3 py-2 rounded-xl bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 text-xs font-semibold">Próxima →</button>
+        </div>
+      </div>
+
+      <!-- Grade Responsiva Dias x Pessoas -->
+      <div class="bg-white dark:bg-warm-800 rounded-3xl shadow-sm border border-stone-200/70 dark:border-stone-700/70 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[720px]">
+            <thead>
+              <tr id="week-grid-header" class="border-b border-stone-200 dark:border-stone-700 bg-stone-50/80 dark:bg-stone-800/80 text-xs font-semibold text-stone-600 dark:text-stone-300">
+                <!-- Preenchido via JS -->
+              </tr>
+            </thead>
+            <tbody id="week-grid-body" class="divide-y divide-stone-200/70 dark:divide-stone-700/70 text-xs">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ABA 3: TAREFAS (Catálogo, Sugestões 1-Clique e Checklists)-->
+    <!-- ========================================================= -->
+    <section id="tab-tarefas" class="tab-panel hidden space-y-5">
+      <!-- Sub-navegação da aba Tarefas -->
+      <div class="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-warm-800 p-2 rounded-2xl border border-stone-200/70 dark:border-stone-700/70">
+        <div class="flex items-center gap-1 overflow-x-auto w-full sm:w-auto">
+          <button type="button" data-task-subtab="active" class="task-subtab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-brand-600 text-white">
+            📋 Tarefas Cadastradas
+          </button>
+          <button type="button" data-task-subtab="library" class="task-subtab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700">
+            ⚡ Biblioteca 1-Clique
+          </button>
+          <button type="button" data-task-subtab="checklists" class="task-subtab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700">
+            🧹 Checklists por Cômodo
+          </button>
+        </div>
+        <button id="btn-new-task-catalog" type="button" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold">
+          ➕ Cadastrar Tarefa
+        </button>
+      </div>
+
+      <!-- Sub-aba 3.1: Lista de Tarefas Ativas -->
+      <div id="subtab-active" class="space-y-3">
+        <div id="catalog-tasks-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      </div>
+
+      <!-- Sub-aba 3.2: Biblioteca de Tarefas Sugeridas Prontas -->
+      <div id="subtab-library" class="hidden space-y-4">
+        <div class="bg-brand-50/70 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-800/60 rounded-2xl p-4">
+          <h3 class="font-display font-bold text-sm sm:text-base text-brand-900 dark:text-brand-200">Biblioteca de Tarefas Domésticas Prontas</h3>
+          <p class="text-xs text-brand-700 dark:text-brand-300 mt-0.5">Toque em <strong>"+ Adicionar"</strong> para incluir instantaneamente na rotina da sua família com tempo, esforço e frequência recomendados.</p>
+        </div>
+        <div id="suggested-library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </div>
+
+      <!-- Sub-aba 3.3: Checklists de Limpeza por Cômodo -->
+      <div id="subtab-checklists" class="hidden space-y-4">
+        <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-5 border border-stone-200/70 dark:border-stone-700/70">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+              <h3 class="font-display font-bold text-base sm:text-lg">Guia & Checklist de Limpeza por Cômodo</h3>
+              <p class="text-xs text-stone-500 dark:text-stone-400">Marque itens durante a faxina ou importe um pacote inteiro para as tarefas da casa.</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <select id="checklist-mode-select" class="rounded-xl bg-stone-100 dark:bg-stone-700 px-3 py-2 text-xs font-semibold border border-stone-200 dark:border-stone-600">
+                <option value="diaria">⚡ Limpeza Rápida Diária</option>
+                <option value="semanal">🧼 Limpeza Semanal</option>
+                <option value="mensal">🪣 Faxina Pesada Mensal</option>
+              </select>
+            </div>
+          </div>
+          <div id="room-checklists-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ABA 4: FAMÍLIA (Membros, Divisão Justa, Rodízio e Carga)  -->
+    <!-- ========================================================= -->
+    <section id="tab-familia" class="tab-panel hidden space-y-5">
+      <!-- Painel de Divisão Justa e Rodízio -->
+      <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-6 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-stone-200/70 dark:border-stone-700/70">
+          <div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-100 text-brand-800 dark:bg-brand-900/50 dark:text-brand-300 mb-1">
+              ⚖️ Algoritmo de Equilíbrio Familiar
+            </span>
+            <h2 class="font-display font-bold text-lg sm:text-xl">Divisão Justa & Carga da Semana</h2>
+            <p class="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+              Equilibra automaticamente o tempo estimado e o nível de esforço, respeitando se o membro é adulto ou criança.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button id="btn-auto-distribute-main" type="button" class="px-4 py-2.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all">
+              ⚖️ Distribuir Automaticamente
+            </button>
+            <button id="btn-rotate-weekly-now" type="button" class="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all" title="Avança o responsável de todas as tarefas em modo rodízio">
+              🔄 Girar Rodízio Semanal
+            </button>
+          </div>
+        </div>
+
+        <!-- Gráfico / Indicador de Carga Semanal por Pessoa -->
+        <div class="mt-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-display font-bold text-sm sm:text-base">Termômetro de Carga Semanal por Pessoa</h3>
+            <span id="workload-fairness-badge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+              Equilíbrio Excelente
+            </span>
+          </div>
+          <div id="workload-chart-container" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <!-- Lista de Membros da Família -->
+      <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-6 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="font-display font-bold text-base sm:text-lg">Membros da Família</h3>
+            <p class="text-xs text-stone-500 dark:text-stone-400">Cadastre adultos e crianças para adaptar as sugestões de tarefas</p>
+          </div>
+          <button id="btn-add-member" type="button" class="px-3.5 py-2 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold">
+            ➕ Novo Membro
+          </button>
+        </div>
+        <div id="family-members-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ABA 5: MAIS (Compras, Recados, Relatórios, Config/Backup) -->
+    <!-- ========================================================= -->
+    <section id="tab-mais" class="tab-panel hidden space-y-6">
+      <!-- Atalhos de Seção dentro de Mais -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <button type="button" data-more-section="shopping" class="more-nav-btn p-3 rounded-2xl bg-brand-600 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm">
+          <span>🛒</span> Lista de Compras
+        </button>
+        <button type="button" data-more-section="notes" class="more-nav-btn p-3 rounded-2xl bg-white dark:bg-warm-800 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2">
+          <span>📌</span> Quadro de Avisos
+        </button>
+        <button type="button" data-more-section="reports" class="more-nav-btn p-3 rounded-2xl bg-white dark:bg-warm-800 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2">
+          <span>📊</span> Histórico & Relatório
+        </button>
+        <button type="button" data-more-section="settings" class="more-nav-btn p-3 rounded-2xl bg-white dark:bg-warm-800 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2">
+          <span>⚙️</span> Ajustes & Backup
+        </button>
+      </div>
+
+      <!-- 5.1: Lista de Compras Compartilhada -->
+      <div id="more-shopping" class="more-panel bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-6 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="font-display font-bold text-lg">🛒 Lista de Compras da Casa</h3>
+            <p class="text-xs text-stone-500 dark:text-stone-400">Faltou algo na despensa ou limpeza? Adicione aqui para todos verem no mercado.</p>
+          </div>
+          <button id="btn-clear-bought" type="button" class="self-start sm:self-auto text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline">
+            🗑️ Limpar itens comprados
+          </button>
+        </div>
+
+        <form id="form-shopping" class="flex flex-col sm:flex-row gap-2 mb-4">
+          <input id="shopping-item-input" type="text" required placeholder="Ex.: Detergente neutro, Leite, Papel higiênico..." class="flex-1 rounded-2xl bg-stone-50 dark:bg-stone-700/60 border border-stone-200 dark:border-stone-600 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          <input id="shopping-qty-input" type="text" placeholder="Qtd / Obs (ex.: 2 un)" class="sm:w-40 rounded-2xl bg-stone-50 dark:bg-stone-700/60 border border-stone-200 dark:border-stone-600 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          <button type="submit" class="px-5 py-2.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shrink-0">
+            Adicionar
+          </button>
+        </form>
+
+        <div id="shopping-list-container" class="space-y-2"></div>
+      </div>
+
+      <!-- 5.2: Quadro de Avisos / Recados da Família -->
+      <div id="more-notes" class="more-panel hidden bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-6 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+        <div class="mb-4">
+          <h3 class="font-display font-bold text-lg">📌 Quadro de Avisos da Família</h3>
+          <p class="text-xs text-stone-500 dark:text-stone-400">Deixe lembretes carinhosos, recados de manutenção ou avisos importantes.</p>
+        </div>
+
+        <form id="form-note" class="space-y-3 mb-5 bg-stone-50 dark:bg-stone-700/40 p-4 rounded-2xl border border-stone-200/60 dark:border-stone-600/60">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div class="sm:col-span-2">
+              <label for="note-text" class="block text-xs font-semibold mb-1">Mensagem do Recado</label>
+              <input id="note-text" type="text" required placeholder="Ex.: O técnico da internet vem quinta-feira às 14h!" class="w-full rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 px-3.5 py-2 text-sm" />
+            </div>
+            <div>
+              <label for="note-author" class="block text-xs font-semibold mb-1">Autor</label>
+              <select id="note-author" class="w-full rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 px-3.5 py-2 text-sm"></select>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold">Cor:</span>
+              <label class="cursor-pointer"><input type="radio" name="note-color" value="amber" checked class="sr-only peer"><span class="inline-block w-6 h-6 rounded-full bg-amber-200 border-2 border-transparent peer-checked:border-stone-900"></span></label>
+              <label class="cursor-pointer"><input type="radio" name="note-color" value="emerald" class="sr-only peer"><span class="inline-block w-6 h-6 rounded-full bg-emerald-200 border-2 border-transparent peer-checked:border-stone-900"></span></label>
+              <label class="cursor-pointer"><input type="radio" name="note-color" value="sky" class="sr-only peer"><span class="inline-block w-6 h-6 rounded-full bg-sky-200 border-2 border-transparent peer-checked:border-stone-900"></span></label>
+              <label class="cursor-pointer"><input type="radio" name="note-color" value="rose" class="sr-only peer"><span class="inline-block w-6 h-6 rounded-full bg-rose-200 border-2 border-transparent peer-checked:border-stone-900"></span></label>
+            </div>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold">
+              📌 Fixar Recado
+            </button>
+          </div>
+        </form>
+
+        <div id="notes-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+      </div>
+
+      <!-- 5.3: Histórico e Relatórios Semanais -->
+      <div id="more-reports" class="more-panel hidden space-y-5">
+        <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-6 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+          <h3 class="font-display font-bold text-lg mb-1">📊 Resumo da Semana</h3>
+          <p class="text-xs text-stone-500 dark:text-stone-400 mb-4">Visão consolidada de tarefas concluídas, pendentes e participação de cada membro.</p>
+
+          <div id="report-summary-cards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6"></div>
+
+          <h4 class="font-display font-bold text-sm mb-3">Participação por Membro nesta Semana</h4>
+          <div id="report-participation-bars" class="space-y-3"></div>
+        </div>
+
+        <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-6 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-display font-bold text-lg">🕒 Histórico de Tarefas Concluídas</h3>
+              <p class="text-xs text-stone-500 dark:text-stone-400">Registro das últimas conclusões feitas pela família</p>
+            </div>
+          </div>
+          <div id="history-log-list" class="divide-y divide-stone-200/70 dark:divide-stone-700/70"></div>
+        </div>
+      </div>
+
+      <!-- 5.4: Configurações, Pontuação e Backup JSON -->
+      <div id="more-settings" class="more-panel hidden space-y-5">
+        <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-6 shadow-sm border border-stone-200/70 dark:border-stone-700/70 space-y-5">
+          <div>
+            <h3 class="font-display font-bold text-lg">⚙️ Preferências da Família</h3>
+            <p class="text-xs text-stone-500 dark:text-stone-400">Personalize a experiência da sua casa</p>
+          </div>
+
+          <!-- Toggle Gamificação -->
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-stone-50 dark:bg-stone-700/40 border border-stone-200/60 dark:border-stone-600/60">
+            <div>
+              <p class="font-semibold text-sm">Ativar Pontuação e Ranking Semanal Amigável</p>
+              <p class="text-xs text-stone-500 dark:text-stone-400">Exibe pontos por esforço e placar da semana na tela inicial</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="toggle-gamification" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer dark:bg-stone-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+            </label>
+          </div>
+
+          <!-- Toggle Rodízio Automático -->
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-stone-50 dark:bg-stone-700/40 border border-stone-200/60 dark:border-stone-600/60">
+            <div>
+              <p class="font-semibold text-sm">Rodízio Semanal Automático</p>
+              <p class="text-xs text-stone-500 dark:text-stone-400">Tarefas marcadas com "Rodízio" trocam de responsável automaticamente a cada nova semana</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="toggle-auto-rotation" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer dark:bg-stone-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+            </label>
+          </div>
+
+          <!-- Backup Exportar / Importar JSON -->
+          <div class="pt-4 border-t border-stone-200 dark:border-stone-700">
+            <h4 class="font-display font-bold text-base mb-1">💾 Backup dos Dados (Exportar / Importar JSON)</h4>
+            <p class="text-xs text-stone-500 dark:text-stone-400 mb-3">Salve uma cópia de segurança de todos os membros, tarefas, histórico e listas da sua família.</p>
+            <div class="flex flex-wrap items-center gap-3">
+              <button id="btn-export-json" type="button" class="px-4 py-2.5 rounded-2xl bg-stone-800 dark:bg-stone-100 text-white dark:text-stone-900 font-semibold text-xs sm:text-sm hover:opacity-90">
+                ⬇️ Exportar Backup (.json)
+              </button>
+              <label class="px-4 py-2.5 rounded-2xl bg-stone-100 dark:bg-stone-700 text-stone-800 dark:text-stone-100 font-semibold text-xs sm:text-sm cursor-pointer hover:bg-stone-200 dark:hover:bg-stone-600">
+                ⬆️ Importar Backup (.json)
+                <input id="input-import-json" type="file" accept=".json,application/json" class="hidden" />
+              </label>
+              <button id="btn-reset-demo" type="button" class="px-4 py-2.5 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 font-semibold text-xs sm:text-sm hover:bg-amber-200">
+                🔄 Restaurar Dados de Exemplo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Navegação Inferior Fixa (Mobile-First) -->
+  <nav aria-label="Navegação Principal" class="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-warm-800/95 backdrop-blur-md border-t border-stone-200/80 dark:border-stone-700/80">
+    <div class="max-w-lg mx-auto px-2 py-1.5 grid grid-cols-5 gap-1">
+      <button type="button" data-tab="hoje" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/50 font-semibold transition-all">
+        <span class="text-lg leading-none mb-1">☀️</span>
+        <span class="text-[11px]">Hoje</span>
+      </button>
+      <button type="button" data-tab="semana" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 font-medium transition-all">
+        <span class="text-lg leading-none mb-1">📅</span>
+        <span class="text-[11px]">Semana</span>
+      </button>
+      <button type="button" data-tab="tarefas" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 font-medium transition-all">
+        <span class="text-lg leading-none mb-1">🧹</span>
+        <span class="text-[11px]">Tarefas</span>
+      </button>
+      <button type="button" data-tab="familia" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 font-medium transition-all">
+        <span class="text-lg leading-none mb-1">👨‍👩‍👧‍👦</span>
+        <span class="text-[11px]">Família</span>
+      </button>
+      <button type="button" data-tab="mais" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 font-medium transition-all">
+        <span class="text-lg leading-none mb-1">✨</span>
+        <span class="text-[11px]">Mais</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========================================================= -->
+  <!-- MODAIS INTERATIVOS (Sem uso de alert/confirm nativo)      -->
+  <!-- ========================================================= -->
+
+  <!-- Modal 1: Cadastrar / Editar Tarefa -->
+  <div id="modal-task" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white dark:bg-warm-800 w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 dark:border-stone-700 animate-pop">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-task-title" class="font-display font-bold text-lg">Nova Tarefa Doméstica</h3>
+        <button type="button" data-close-modal="modal-task" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-500">✕</button>
+      </div>
+      <form id="form-task" class="space-y-3.5">
+        <input type="hidden" id="task-id" />
+        <div>
+          <label for="task-name" class="block text-xs font-semibold mb-1">Nome da Tarefa *</label>
+          <input id="task-name" type="text" required placeholder="Ex.: Lavar a louça do jantar" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3.5 py-2.5 text-sm" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="task-room" class="block text-xs font-semibold mb-1">Cômodo / Área</label>
+            <select id="task-room" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3 py-2.5 text-sm">
+              <option value="cozinha">🍳 Cozinha</option>
+              <option value="sala">🛋️ Sala</option>
+              <option value="banheiro">🚿 Banheiro</option>
+              <option value="quarto">🛏️ Quarto</option>
+              <option value="quintal">🌿 Quintal</option>
+              <option value="lavanderia">🧺 Lavanderia</option>
+              <option value="geral">✨ Geral</option>
+            </select>
+          </div>
+          <div>
+            <label for="task-assignee" class="block text-xs font-semibold mb-1">Responsável</label>
+            <select id="task-assignee" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3 py-2.5 text-sm"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="task-frequency" class="block text-xs font-semibold mb-1">Frequência</label>
+            <select id="task-frequency" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3 py-2.5 text-sm">
+              <option value="diaria">Todo dia (Diária)</option>
+              <option value="semanal">Semanal (Escolher dias)</option>
+              <option value="quinzenal">Quinzenal (A cada 15 dias)</option>
+              <option value="mensal">Mensal (1x por mês)</option>
+              <option value="unica">Única (Data específica)</option>
+            </select>
+          </div>
+          <div>
+            <label for="task-duration" class="block text-xs font-semibold mb-1">Duração Estimada (min)</label>
+            <input id="task-duration" type="number" min="5" max="300" step="5" value="20" required class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3.5 py-2.5 text-sm" />
+          </div>
+        </div>
+
+        <!-- Seletor de Dias da Semana (Visível para Semanal / Quinzenal) -->
+        <div id="task-days-wrapper" class="hidden">
+          <label class="block text-xs font-semibold mb-1.5">Dias da Semana</label>
+          <div class="grid grid-cols-7 gap-1.5">
+            <label class="cursor-pointer text-center"><input type="checkbox" name="task-weekdays" value="0" class="sr-only peer"><span class="block py-2 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-700 peer-checked:bg-brand-600 peer-checked:text-white">Dom</span></label>
+            <label class="cursor-pointer text-center"><input type="checkbox" name="task-weekdays" value="1" class="sr-only peer" checked><span class="block py-2 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-700 peer-checked:bg-brand-600 peer-checked:text-white">Seg</span></label>
+            <label class="cursor-pointer text-center"><input type="checkbox" name="task-weekdays" value="2" class="sr-only peer"><span class="block py-2 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-700 peer-checked:bg-brand-600 peer-checked:text-white">Ter</span></label>
+            <label class="cursor-pointer text-center"><input type="checkbox" name="task-weekdays" value="3" class="sr-only peer" checked><span class="block py-2 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-700 peer-checked:bg-brand-600 peer-checked:text-white">Qua</span></label>
+            <label class="cursor-pointer text-center"><input type="checkbox" name="task-weekdays" value="4" class="sr-only peer"><span class="block py-2 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-700 peer-checked:bg-brand-600 peer-checked:text-white">Qui</span></label>
+            <label class="cursor-pointer text-center"><input type="checkbox" name="task-weekdays" value="5" class="sr-only peer" checked><span class="block py-2 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-700 peer-checked:bg-brand-600 peer-checked:text-white">Sex</span></label>
+            <label class="cursor-pointer text-center"><input type="checkbox" name="task-weekdays" value="6" class="sr-only peer"><span class="block py-2 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-700 peer-checked:bg-brand-600 peer-checked:text-white">Sáb</span></label>
+          </div>
+        </div>
+
+        <!-- Dia do Mês (Visível para Mensal) -->
+        <div id="task-monthday-wrapper" class="hidden">
+          <label for="task-monthday" class="block text-xs font-semibold mb-1">Dia do Mês (1 a 28)</label>
+          <input id="task-monthday" type="number" min="1" max="28" value="5" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3.5 py-2 text-sm" />
+        </div>
+
+        <!-- Data Específica (Visível para Única) -->
+        <div id="task-once-wrapper" class="hidden">
+          <label for="task-once-date" class="block text-xs font-semibold mb-1">Data da Tarefa</label>
+          <input id="task-once-date" type="date" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3.5 py-2 text-sm" />
+        </div>
+
+        <!-- Nível de Esforço (1 a 3) -->
+        <div>
+          <label class="block text-xs font-semibold mb-1.5">Nível de Esforço</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="task-effort" value="1" class="sr-only peer">
+              <span class="block text-center py-2 px-2 rounded-xl text-xs font-semibold border border-stone-200 dark:border-stone-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600">🌱 1 - Leve (10 pts)</span>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="task-effort" value="2" checked class="sr-only peer">
+              <span class="block text-center py-2 px-2 rounded-xl text-xs font-semibold border border-stone-200 dark:border-stone-600 peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500">⚡ 2 - Médio (25 pts)</span>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="task-effort" value="3" class="sr-only peer">
+              <span class="block text-center py-2 px-2 rounded-xl text-xs font-semibold border border-stone-200 dark:border-stone-600 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600">🔥 3 - Pesado (50 pts)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Opções de Rodízio e Restrição de Idade -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <label class="flex items-center gap-2 p-2.5 rounded-xl bg-stone-50 dark:bg-stone-700/50 cursor-pointer text-xs font-medium">
+            <input type="checkbox" id="task-rotate" class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4" checked />
+            <span>🔄 Participar do rodízio semanal</span>
+          </label>
+          <label class="flex items-center gap-2 p-2.5 rounded-xl bg-stone-50 dark:bg-stone-700/50 cursor-pointer text-xs font-medium">
+            <input type="checkbox" id="task-adult-only" class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4" />
+            <span>🔞 Apenas para adultos</span>
+          </label>
+        </div>
+
+        <div>
+          <label for="task-notes" class="block text-xs font-semibold mb-1">Observações / Como fazer</label>
+          <textarea id="task-notes" rows="2" placeholder="Ex.: Usar pano de microfibra e limpador perfumado..." class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3.5 py-2 text-sm"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" data-close-modal="modal-task" class="px-4 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-700 text-xs sm:text-sm font-semibold">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold">Salvar Tarefa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Cadastrar / Editar Membro da Família -->
+  <div id="modal-member" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white dark:bg-warm-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-stone-200 dark:border-stone-700 animate-pop">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-member-title" class="font-display font-bold text-lg">Membro da Família</h3>
+        <button type="button" data-close-modal="modal-member" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-500">✕</button>
+      </div>
+      <form id="form-member" class="space-y-4">
+        <input type="hidden" id="member-id" />
+        <div>
+          <label for="member-name" class="block text-xs font-semibold mb-1">Nome *</label>
+          <input id="member-name" type="text" required placeholder="Ex.: Mariana" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700/70 border border-stone-200 dark:border-stone-600 px-3.5 py-2.5 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1.5">Faixa Etária (para tarefas adequadas)</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <label class="cursor-pointer">
+              <input type="radio" name="member-role" value="adult" checked class="sr-only peer">
+              <span class="block text-center py-2.5 rounded-xl text-xs font-semibold border border-stone-200 dark:border-stone-600 peer-checked:bg-brand-600 peer-checked:text-white peer-checked:border-brand-600">🧑 Adulto / Jovem</span>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="member-role" value="child" class="sr-only peer">
+              <span class="block text-center py-2.5 rounded-xl text-xs font-semibold border border-stone-200 dark:border-stone-600 peer-checked:bg-brand-600 peer-checked:text-white peer-checked:border-brand-600">🧒 Criança (Tarefas leves)</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1.5">Emoji / Avatar</label>
+          <div id="emoji-picker-grid" class="grid grid-cols-6 gap-2">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1.5">Cor do Perfil</label>
+          <div id="color-picker-grid" class="grid grid-cols-6 gap-2">
+            <!-- Preenchido via JS -->
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" data-close-modal="modal-member" class="px-4 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-700 text-xs sm:text-sm font-semibold">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold">Salvar Membro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Trocar Responsável ou Pedir Troca -->
+  <div id="modal-swap" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white dark:bg-warm-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-stone-200 dark:border-stone-700 animate-pop">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-display font-bold text-lg">🔄 Trocar ou Reatribuir Tarefa</h3>
+        <button type="button" data-close-modal="modal-swap" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-500">✕</button>
+      </div>
+      <p id="swap-task-label" class="text-xs font-semibold text-brand-700 dark:text-brand-300 mb-4"></p>
+      <form id="form-swap" class="space-y-4">
+        <input type="hidden" id="swap-task-id" />
+        <div>
+          <label for="swap-target-member" class="block text-xs font-semibold mb-1">Escolher novo membro da família</label>
+          <select id="swap-target-member" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 px-3.5 py-2.5 text-sm"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1.5">Como deseja fazer a alteração?</label>
+          <div class="grid grid-cols-1 gap-2">
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-stone-200 dark:border-stone-600 cursor-pointer">
+              <input type="radio" name="swap-mode" value="direct" checked class="text-brand-600" />
+              <div class="text-xs">
+                <p class="font-semibold">Mudar responsável imediatamente</p>
+                <p class="text-stone-500 dark:text-stone-400">Transfere a tarefa agora mesmo</p>
+              </div>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-stone-200 dark:border-stone-600 cursor-pointer">
+              <input type="radio" name="swap-mode" value="request" class="text-brand-600" />
+              <div class="text-xs">
+                <p class="font-semibold">Enviar pedido amigável de troca</p>
+                <p class="text-stone-500 dark:text-stone-400">Aparece no topo da tela "Hoje" para a pessoa aceitar</p>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div>
+          <label for="swap-message" class="block text-xs font-semibold mb-1">Recadinho opcional</label>
+          <input id="swap-message" type="text" placeholder="Ex.: Troca comigo hoje? Eu lavo a louça amanhã!" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 px-3.5 py-2 text-sm" />
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" data-close-modal="modal-swap" class="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-700 text-xs font-semibold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Código da Família (Sincronização entre celulares) -->
+  <div id="modal-family-code" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white dark:bg-warm-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-stone-200 dark:border-stone-700 animate-pop">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-display font-bold text-lg">🔑 Código da Família</h3>
+        <button type="button" data-close-modal="modal-family-code" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-500">✕</button>
+      </div>
+      <p class="text-xs text-stone-600 dark:text-stone-300 mb-4">
+        Digite o mesmo código em todos os celulares da casa (ex.: <strong>familia-silva-2026</strong>) para compartilhar a mesma lista de tarefas e compras em tempo real.
+      </p>
+      <form id="form-family-code" class="space-y-4">
+        <div>
+          <label for="input-family-code" class="block text-xs font-semibold mb-1">Código Único da Família</label>
+          <input id="input-family-code" type="text" required pattern="[a-zA-Z0-9\-_]{3,40}" placeholder="ex.: familia-silva-2026" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 px-3.5 py-2.5 text-sm font-mono" />
+          <p class="text-[11px] text-stone-400 mt-1">Use letras, números e traços (mínimo 3 caracteres).</p>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <button id="btn-copy-family-code" type="button" class="px-3.5 py-2 rounded-xl bg-stone-100 dark:bg-stone-700 text-xs font-semibold">📋 Copiar Código</button>
+          <div class="flex gap-2">
+            <button type="button" data-close-modal="modal-family-code" class="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-700 text-xs font-semibold">Fechar</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">Conectar Família</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Login e Cadastro por E-mail / Senha (Firebase Auth) -->
+  <div id="modal-auth" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white dark:bg-warm-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-stone-200 dark:border-stone-700 animate-pop">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-display font-bold text-lg flex items-center gap-2">
+          <span>🔐</span>
+          <span>Conta da Família (E-mail e Senha)</span>
+        </h3>
+        <button type="button" data-close-modal="modal-auth" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-500">✕</button>
+      </div>
+
+      <!-- Painel quando JÁ está conectado -->
+      <div id="auth-logged-in-view" class="hidden space-y-4">
+        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/70">
+          <p class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">✅ Conectado ao Firebase Auth</p>
+          <p id="auth-current-email" class="text-sm font-bold text-stone-900 dark:text-white mt-1 break-all"></p>
+          <p class="text-[11px] text-stone-500 dark:text-stone-400 mt-1">
+            Sincronizando dados com o código: <strong id="auth-current-family-code" class="font-mono"></strong>
+          </p>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <button id="btn-logout-auth" type="button" class="px-4 py-2.5 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:bg-rose-200 transition-colors">
+            🚪 Sair desta Conta
+          </button>
+          <button type="button" data-close-modal="modal-auth" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white text-xs font-semibold">
+            Fechar
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulário para Entrar ou Criar Conta -->
+      <div id="auth-form-view" class="space-y-4">
+        <!-- Alternador Entrar vs Criar Conta -->
+        <div class="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-stone-100 dark:bg-stone-700/70">
+          <button type="button" id="tab-auth-login" class="py-2 rounded-xl text-xs font-bold bg-white dark:bg-warm-800 text-brand-600 dark:text-brand-400 shadow-2xs transition-all">
+            Entrar na Conta
+          </button>
+          <button type="button" id="tab-auth-register" class="py-2 rounded-xl text-xs font-semibold text-stone-600 dark:text-stone-300 hover:text-stone-900 transition-all">
+            Criar Nova Conta
+          </button>
+        </div>
+
+        <div id="auth-feedback-box" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+
+        <form id="form-auth" class="space-y-3.5">
+          <div>
+            <label for="auth-email" class="block text-xs font-semibold mb-1">Seu E-mail *</label>
+            <input id="auth-email" type="email" required placeholder="exemplo@email.com" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+          <div>
+            <label for="auth-password" class="block text-xs font-semibold mb-1">Senha (mínimo 6 caracteres) *</label>
+            <input id="auth-password" type="password" required minlength="6" placeholder="••••••" class="w-full rounded-xl bg-stone-50 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+
+          <button id="btn-submit-auth" type="submit" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all">
+            🔐 Entrar com E-mail e Senha
+          </button>
+        </form>
+
+        <div class="pt-3 border-t border-stone-200 dark:border-stone-700">
+          <button id="btn-auto-family-auth" type="button" class="w-full py-2 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-semibold transition-colors">
+            ⚡ Conectar Direto com o Código da Família
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de Feedback Rápido -->
+  <div id="toast-container" class="fixed top-16 right-4 z-50 flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
+
+  <!-- ========================================================= -->
+  <!-- SCRIPT PRINCIPAL (Módulo ES6+ com Firebase & Lógica)       -->
+  <!-- ========================================================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import {
+      getAuth,
+      signInAnonymously,
+      signInWithCustomToken,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // ============================================================================
+    // 1. CONFIGURAÇÃO DO FIREBASE (PROJETO: casaemdia-e922f)
+    // ============================================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_CvhNXRNsV8EoUOEJvxNaeZU0Wuh4tE8",
+      authDomain: "casaemdia-e922f.firebaseapp.com",
+      projectId: "casaemdia-e922f",
+      storageBucket: "casaemdia-e922f.firebasestorage.app",
+      messagingSenderId: "1036946412828",
+      appId: "1:1036946412828:web:6b66278689149b58ae56d9",
+      measurementId: "G-P4QD73R1W2"
+    };
+
+    const manualFirebaseConfig = firebaseConfig;
+
+    // Prioriza a configuração do projeto casaemdia-e922f inserida acima
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'casaemdia-e922f';
+    let activeFirebaseConfig = manualFirebaseConfig;
+    let hasValidFirebaseConfig = false;
+
+    try {
+      if (
+        manualFirebaseConfig &&
+        manualFirebaseConfig.apiKey &&
+        manualFirebaseConfig.apiKey !== "SUA_API_KEY_AQUI" &&
+        manualFirebaseConfig.projectId !== "seu-projeto-id"
+      ) {
+        activeFirebaseConfig = manualFirebaseConfig;
+        hasValidFirebaseConfig = true;
+      } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        activeFirebaseConfig = JSON.parse(__firebase_config);
+        hasValidFirebaseConfig = true;
+      }
+    } catch (err) {
+      hasValidFirebaseConfig = false;
+    }
+
+    // ============================================================================
+    // 2. CONSTANTES, BIBLIOTECA DE TAREFAS E CHECKLISTS POR CÔMODO
+    // ============================================================================
+    const ROOM_META = {
+      cozinha:    { label: 'Cozinha',    emoji: '🍳', badge: 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300' },
+      sala:       { label: 'Sala',       emoji: '🛋️', badge: 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300' },
+      banheiro:   { label: 'Banheiro',   emoji: '🚿', badge: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300' },
+      quarto:     { label: 'Quarto',     emoji: '🛏️', badge: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300' },
+      quintal:    { label: 'Quintal',    emoji: '🌿', badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' },
+      lavanderia: { label: 'Lavanderia', emoji: '🧺', badge: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300' },
+      geral:      { label: 'Geral',      emoji: '✨', badge: 'bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-200' },
+    };
+
+    const EFFORT_META = {
+      1: { label: 'Leve',   points: 10, icon: '🌱', badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' },
+      2: { label: 'Médio',  points: 25, icon: '⚡', badge: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' },
+      3: { label: 'Pesado', points: 50, icon: '🔥', badge: 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300' },
+    };
+
+    const WEEKDAY_NAMES_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const WEEKDAY_NAMES_FULL  = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+    const AVATAR_EMOJIS = ['👩', '👨', '🧑', '👧', '👦', '👵', '👴', '🦸‍♀️', '🦸‍♂️', '🧑‍🍳', '🧑‍🌾', '🐱'];
+    const PROFILE_COLORS = [
+      { id: 'emerald', hex: '#10b981', label: 'Verde' },
+      { id: 'sky',     hex: '#0ea5e9', label: 'Azul' },
+      { id: 'purple',  hex: '#8b5cf6', label: 'Roxo' },
+      { id: 'amber',   hex: '#f59e0b', label: 'Âmbar' },
+      { id: 'rose',    hex: '#f43f5e', label: 'Rosa' },
+      { id: 'teal',    hex: '#14b8a6', label: 'Turquesa' }
+    ];
+
+    // Biblioteca de tarefas prontas para adicionar com 1 clique
+    const SUGGESTED_TASKS_LIBRARY = [
+      { name: 'Lavar a louça e limpar a pia', room: 'cozinha', frequency: 'diaria', weekdays: [], duration: 20, effort: 2, adultOnly: false, notes: 'Secar a bancada e limpar o ralo ao finalizar.' },
+      { name: 'Tirar o lixo da cozinha e banheiros', room: 'geral', frequency: 'diaria', weekdays: [], duration: 10, effort: 1, adultOnly: false, notes: 'Colocar saco novo nos cestos.' },
+      { name: 'Varrer ou aspirar a sala e quartos', room: 'sala', frequency: 'semanal', weekdays: [1, 3, 5], duration: 25, effort: 2, adultOnly: false, notes: 'Passar embaixo do sofá e tapetes.' },
+      { name: 'Lavar o banheiro completo', room: 'banheiro', frequency: 'semanal', weekdays: [6], duration: 40, effort: 3, adultOnly: true, notes: 'Lavar box, vaso sanitário, pia e espelho.' },
+      { name: 'Trocar roupas de cama e toalhas', room: 'quarto', frequency: 'semanal', weekdays: [0], duration: 20, effort: 2, adultOnly: false, notes: 'Levar as peças usadas direto para o cesto da lavanderia.' },
+      { name: 'Organizar brinquedos e objetos da sala', room: 'sala', frequency: 'diaria', weekdays: [], duration: 10, effort: 1, adultOnly: false, notes: 'Ótima tarefa para crianças antes do jantar.' },
+      { name: 'Regar as plantas da casa e quintal', room: 'quintal', frequency: 'semanal', weekdays: [2, 5], duration: 15, effort: 1, adultOnly: false, notes: 'Verificar se a terra está seca antes de molhar.' },
+      { name: 'Lavar e estender roupas na máquina', room: 'lavanderia', frequency: 'semanal', weekdays: [1, 4], duration: 25, effort: 2, adultOnly: false, notes: 'Separar roupas brancas e coloridas.' },
+      { name: 'Limpar fogão e micro-ondas', room: 'cozinha', frequency: 'semanal', weekdays: [5], duration: 20, effort: 2, adultOnly: true, notes: 'Usar desengordurante suave.' },
+      { name: 'Fazer compras de reposição da semana', room: 'geral', frequency: 'semanal', weekdays: [6], duration: 60, effort: 3, adultOnly: true, notes: 'Conferir a Lista de Compras na aba Mais.' },
+      { name: 'Organizar guarda-roupa e dobrar peças', room: 'quarto', frequency: 'quinzenal', weekdays: [6], duration: 35, effort: 2, adultOnly: false, notes: 'Separar roupas que não servem mais para doação.' },
+      { name: 'Limpar geladeira e descartar vencidos', room: 'cozinha', frequency: 'mensal', monthDay: 10, weekdays: [], duration: 45, effort: 3, adultOnly: true, notes: 'Passar pano com bicarbonato nas prateleiras.' }
+    ];
+
+    // Checklists de limpeza por cômodo e intensidade
+    const ROOM_CHECKLISTS = {
+      diaria: {
+        cozinha: ['Lavar a louça acumulada', 'Limpar bancadas e mesa', 'Secar a pia', 'Varrer migalhas do chão'],
+        sala: ['Arrumar almofadas e manta do sofá', 'Recolher copos e objetos fora do lugar', 'Alinhar tapete'],
+        banheiro: ['Passar pano seco na pia e bancada', 'Recolher toalhas úmidas', 'Verificar papel higiênico'],
+        quarto: ['Arrumar a cama ao acordar', 'Guardar roupas no cesto ou armário', 'Abrir a janela para ventilar'],
+      },
+      semanal: {
+        cozinha: ['Limpar fogão por completo', 'Limpar interior do micro-ondas', 'Passar pano úmido no chão', 'Higienizar lixeira'],
+        sala: ['Aspirar sofá e tapetes', 'Tirar pó da TV e estantes', 'Limpar mesa de centro e vidros'],
+        banheiro: ['Esfregar box e azulejos', 'Higienizar vaso sanitário', 'Limpar espelho sem manchas', 'Trocar toalhas de banho e rosto'],
+        quarto: ['Trocar lençóis e fronhas', 'Aspirar ou passar pano no chão', 'Tirar pó dos criados-mudos'],
+        lavanderia: ['Lavar roupas da semana', 'Passar ou dobrar roupas secas', 'Limpar filtro da máquina de lavar'],
+        quintal: ['Varrer folhas secas', 'Regar vasos e jardim', 'Lavar área dos pets']
+      },
+      mensal: {
+        cozinha: ['Faxina interna na geladeira e freezer', 'Limpar coifa/exaustor', 'Organizar armários e despensa', 'Limpar forno por dentro'],
+        sala: ['Limpar janelas, trilhos e persianas', 'Afastar sofá e limpar atrás', 'Higienizar ventilador ou filtro do ar'],
+        banheiro: ['Lavar rejuntes e ralos a fundo', 'Organizar gavetas de remédios/cosméticos', 'Lavar tapetes do banheiro'],
+        quarto: ['Virar o colchão e aspirar', 'Organizar guarda-roupa e gavetas', 'Limpar portas e rodapés']
+      }
+    };
+
+    // ============================================================================
+    // 3. DADOS DE EXEMPLO (SEED INICIAL — FAMÍLIA SILVA)
+    // ============================================================================
+    function createSeedData() {
+      const todayIso = formatIsoDate(new Date());
+      return {
+        familyName: 'Família Silva',
+        updatedAt: Date.now(),
+        settings: {
+          gamificationEnabled: true,
+          autoRotationEnabled: true,
+          rotationOffset: 0
+        },
+        members: [
+          { id: 'mem-1', name: 'Carla (Mãe)',   role: 'adult', emoji: '👩', color: '#10b981' },
+          { id: 'mem-2', name: 'Marcos (Pai)',  role: 'adult', emoji: '👨', color: '#0ea5e9' },
+          { id: 'mem-3', name: 'Lucas (14a)',   role: 'adult', emoji: '👦', color: '#8b5cf6' },
+          { id: 'mem-4', name: 'Sofia (8a)',    role: 'child', emoji: '👧', color: '#f59e0b' }
+        ],
+        tasks: [
+          {
+            id: 'tsk-1',
+            name: 'Lavar a louça e secar a pia',
+            room: 'cozinha',
+            frequency: 'diaria',
+            weekdays: [],
+            monthDay: 1,
+            onceDate: todayIso,
+            duration: 20,
+            effort: 2,
+            assigneeId: 'mem-1',
+            rotateWeekly: true,
+            adultOnly: false,
+            notes: 'Conferir se não ficaram panelas no fogão.',
+            createdAt: Date.now() - 86400000 * 5
+          },
+          {
+            id: 'tsk-2',
+            name: 'Tirar o lixo e repor sacolas',
+            room: 'geral',
+            frequency: 'diaria',
+            weekdays: [],
+            monthDay: 1,
+            onceDate: todayIso,
+            duration: 10,
+            effort: 1,
+            assigneeId: 'mem-3',
+            rotateWeekly: true,
+            adultOnly: false,
+            notes: 'Cozinha e banheiros antes das 20h.',
+            createdAt: Date.now() - 86400000 * 5
+          },
+          {
+            id: 'tsk-3',
+            name: 'Guardar brinquedos e arrumar almofadas',
+            room: 'sala',
+            frequency: 'diaria',
+            weekdays: [],
+            monthDay: 1,
+            onceDate: todayIso,
+            duration: 15,
+            effort: 1,
+            assigneeId: 'mem-4',
+            rotateWeekly: false,
+            adultOnly: false,
+            notes: 'Colocar os jogos na caixa organizadora.',
+            createdAt: Date.now() - 86400000 * 5
+          },
+          {
+            id: 'tsk-4',
+            name: 'Aspirar a sala e passar pano úmido',
+            room: 'sala',
+            frequency: 'semanal',
+            weekdays: [1, 3, 5],
+            monthDay: 1,
+            onceDate: todayIso,
+            duration: 30,
+            effort: 2,
+            assigneeId: 'mem-2',
+            rotateWeekly: true,
+            adultOnly: false,
+            notes: 'Usar limpador perfumado diluído.',
+            createdAt: Date.now() - 86400000 * 5
+          },
+          {
+            id: 'tsk-5',
+            name: 'Lavar o banheiro social completo',
+            room: 'banheiro',
+            frequency: 'semanal',
+            weekdays: [6],
+            monthDay: 1,
+            onceDate: todayIso,
+            duration: 40,
+            effort: 3,
+            assigneeId: 'mem-2',
+            rotateWeekly: true,
+            adultOnly: true,
+            notes: 'Lavar box, vaso, pia e trocar tapete.',
+            createdAt: Date.now() - 86400000 * 5
+          },
+          {
+            id: 'tsk-6',
+            name: 'Regar as plantas da varanda e quintal',
+            room: 'quintal',
+            frequency: 'semanal',
+            weekdays: [0, 3, 6],
+            monthDay: 1,
+            onceDate: todayIso,
+            duration: 15,
+            effort: 1,
+            assigneeId: 'mem-4',
+            rotateWeekly: true,
+            adultOnly: false,
+            notes: 'Não encharcar as suculentas.',
+            createdAt: Date.now() - 86400000 * 5
+          },
+          {
+            id: 'tsk-7',
+            name: 'Lavar e estender roupas da família',
+            room: 'lavanderia',
+            frequency: 'semanal',
+            weekdays: [1, 4],
+            monthDay: 1,
+            onceDate: todayIso,
+            duration: 25,
+            effort: 2,
+            assigneeId: 'mem-1',
+            rotateWeekly: true,
+            adultOnly: false,
+            notes: 'Separar roupas escuras e claras.',
+            createdAt: Date.now() - 86400000 * 5
+          }
+        ],
+        // Registro de conclusões: chave `${taskId}_${YYYY-MM-DD}` -> { memberId, completedAt, points, taskName, room }
+        completions: {},
+        // Histórico linear para exibição rápida
+        history: [],
+        // Pedidos de troca entre membros
+        swapRequests: [],
+        // Progresso dos checklists de cômodo
+        checklistDone: {},
+        // Lista de compras compartilhada
+        shoppingList: [
+          { id: 'shp-1', text: 'Detergente neutro', qty: '3 unidades', bought: false },
+          { id: 'shp-2', text: 'Sacos de lixo 50L', qty: '2 rolos', bought: false },
+          { id: 'shp-3', text: 'Frutas para a semana (banana, maçã)', qty: '1,5 kg', bought: true }
+        ],
+        // Quadro de avisos da família
+        notes: [
+          { id: 'not-1', text: 'Sábado faremos almoço especial em família! Quem terminar as tarefas até 12h escolhe a sobremesa 🍨', authorName: 'Carla (Mãe)', color: 'amber', createdAt: Date.now() - 3600000 * 4 },
+          { id: 'not-2', text: 'Lembrem de tirar a roupa do varal se o tempo fechar à tarde 🌧️', authorName: 'Marcos (Pai)', color: 'sky', createdAt: Date.now() - 3600000 * 12 }
+        ]
+      };
+    }
+
+    // ============================================================================
+    // 4. ESTADO DA APLICAÇÃO E UTILITÁRIOS DE DATA (Formato PT-BR)
+    // ============================================================================
+    let familyCode = 'familia-silva-2026';
+    let appData = createSeedData();
+    let currentTab = 'hoje';
+    let currentTaskSubtab = 'active';
+    let currentMoreSection = 'shopping';
+    let weekOffset = 0; // 0 = semana atual, -1 = semana passada, +1 = próxima
+
+    // Seleções temporárias nos modais
+    let selectedEmoji = AVATAR_EMOJIS[0];
+    let selectedColor = PROFILE_COLORS[0].hex;
+
+    // Instâncias Firebase
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let unsubscribeSnapshot = null;
+    let isSavingRemote = false;
+
+    // Utilitários de data sem problemas de fuso horário
+    function formatIsoDate(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function parseIsoDate(isoStr) {
+      const [y, m, d] = isoStr.split('-').map(Number);
+      return new Date(y, m - 1, d, 12, 0, 0);
+    }
+
+    function formatBrDate(dateOrIso) {
+      const d = typeof dateOrIso === 'string' ? parseIsoDate(dateOrIso) : dateOrIso;
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    function formatBrDateTime(timestamp) {
+      const d = new Date(timestamp);
+      const datePart = formatBrDate(d);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${datePart} às ${hh}:${mm}`;
+    }
+
+    // Retorna o Domingo (início da semana) para uma data + deslocamento de semanas
+    function getStartOfWeekSunday(baseDate = new Date(), offsetWeeks = 0) {
+      const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 12, 0, 0);
+      const dayOfWeek = d.getDay(); // 0 = Domingo
+      d.setDate(d.getDate() - dayOfWeek + (offsetWeeks * 7));
+      return d;
+    }
+
+    // Número sequencial da semana para cálculo de rodízio automático
+    function getWeekNumberIndex(dateObj) {
+      const startSunday = getStartOfWeekSunday(dateObj, 0);
+      const epochSunday = new Date(2026, 0, 4, 12, 0, 0);
+      const diffMs = startSunday.getTime() - epochSunday.getTime();
+      return Math.floor(diffMs / (7 * 24 * 3600 * 1000));
+    }
+
+    // ============================================================================
+    // 5. MOTOR DE OCORRÊNCIAS DE TAREFAS (Sem duplicar registros!)
+    // ============================================================================
+    // Verifica se uma tarefa deve ocorrer em uma determinada data (Date)
+    function doesTaskOccurOnDate(task, dateObj) {
+      const iso = formatIsoDate(dateObj);
+      const dow = dateObj.getDay(); // 0 (Dom) a 6 (Sáb)
+      const dom = dateObj.getDate();
+
+      switch (task.frequency) {
+        case 'diaria':
+          return true;
+        case 'semanal': {
+          const days = Array.isArray(task.weekdays) && task.weekdays.length > 0 ? task.weekdays.map(Number) : [1];
+          return days.includes(dow);
+        }
+        case 'quinzenal': {
+          const days = Array.isArray(task.weekdays) && task.weekdays.length > 0 ? task.weekdays.map(Number) : [6];
+          if (!days.includes(dow)) return false;
+          const weekIdx = Math.abs(getWeekNumberIndex(dateObj));
+          return weekIdx % 2 === 0;
+        }
+        case 'mensal': {
+          const targetDay = Number(task.monthDay) || 5;
+          return dom === targetDay;
+        }
+        case 'unica': {
+          return task.onceDate === iso;
+        }
+        default:
+          return true;
+      }
+    }
+
+    // Calcula o responsável efetivo da tarefa em uma data (considerando rodízio semanal e idade)
+    function getEffectiveAssigneeId(task, dateObj) {
+      const members = appData.members || [];
+      if (members.length === 0) return '';
+
+      // Se rodízio não estiver ativo na tarefa ou nas configurações globais, retorna o responsável fixo
+      const autoRotateGlobal = appData.settings?.autoRotationEnabled !== false;
+      const manualOffset = Number(appData.settings?.rotationOffset || 0);
+
+      if (!task.rotateWeekly || !autoRotateGlobal) {
+        return task.assigneeId || members[0].id;
+      }
+
+      // Filtra membros elegíveis (se a tarefa for restrita a adultos ou esforço 3, prioriza adultos)
+      let eligible = members.filter(m => {
+        if (task.adultOnly || Number(task.effort) === 3) {
+          return m.role === 'adult';
+        }
+        return true;
+      });
+      if (eligible.length === 0) eligible = members;
+
+      const baseIndex = Math.max(0, eligible.findIndex(m => m.id === task.assigneeId));
+      const weekDiff = Math.max(0, getWeekNumberIndex(dateObj)) + manualOffset;
+      const rotatedIndex = (baseIndex + weekDiff) % eligible.length;
+      return eligible[rotatedIndex].id;
+    }
+
+    // Chave única de conclusão para uma tarefa em uma data específica
+    function getCompletionKey(taskId, isoDate) {
+      return `${taskId}_${isoDate}`;
+    }
+
+    function isTaskCompletedOnDate(taskId, isoDate) {
+      return Boolean(appData.completions && appData.completions[getCompletionKey(taskId, isoDate)]);
+    }
+
+    // ============================================================================
+    // 6. CAMADA DE ACESSO A DADOS (Firestore Tempo Real + Fallback Seguro)
+    // ============================================================================
+    let authMode = 'login'; // 'login' ou 'register'
+
+    function updateSyncBadge(mode, text, bannerMsg = null) {
+      const badge = document.getElementById('sync-badge');
+      const banner = document.getElementById('fallback-banner');
+      const bannerText = document.getElementById('fallback-banner-text');
+      if (!badge) return;
+
+      if (mode === 'cloud') {
+        badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 cursor-pointer';
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Nuvem Ao Vivo`;
+        if (banner) banner.classList.add('hidden');
+      } else {
+        badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 cursor-pointer';
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ${text || 'Modo Local'}`;
+        if (banner && bannerMsg && bannerText) {
+          banner.classList.remove('hidden');
+          bannerText.innerHTML = `<span>⚡</span><span>${bannerMsg}</span>`;
+        }
+      }
+    }
+
+    function updateAuthUI() {
+      const btnLabel = document.getElementById('auth-btn-label');
+      const loggedInView = document.getElementById('auth-logged-in-view');
+      const formView = document.getElementById('auth-form-view');
+      const currentEmailEl = document.getElementById('auth-current-email');
+      const currentCodeEl = document.getElementById('auth-current-family-code');
+
+      if (currentUser) {
+        const isAutoAccount = currentUser.email && currentUser.email.endsWith('@casaemdia.familia.app');
+        const displayLabel = isAutoAccount
+          ? 'Conectado'
+          : (currentUser.email ? currentUser.email.split('@')[0] : 'Conectado');
+
+        if (btnLabel) btnLabel.textContent = displayLabel;
+        if (loggedInView) loggedInView.classList.remove('hidden');
+        if (formView) formView.classList.add('hidden');
+        if (currentEmailEl) {
+          currentEmailEl.textContent = isAutoAccount
+            ? `Sessão automática da família (${currentUser.email})`
+            : (currentUser.email || 'Usuário autenticado');
+        }
+        if (currentCodeEl) currentCodeEl.textContent = familyCode;
+      } else {
+        if (btnLabel) btnLabel.textContent = 'Entrar';
+        if (loggedInView) loggedInView.classList.add('hidden');
+        if (formView) formView.classList.remove('hidden');
+      }
+    }
+
+    // Autentica automaticamente usando o provedor E-mail/Senha que foi ativado no Firebase
+    async function connectWithFamilyEmailSession(code) {
+      if (!auth) return false;
+      const safeCode = String(code || 'familia-silva-2026').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const autoEmail = `familia.${safeCode}@casaemdia.familia.app`;
+      const autoPass = `LarEmDia#${safeCode}!2026`;
+
+      try {
+        const cred = await signInWithEmailAndPassword(auth, autoEmail, autoPass);
+        currentUser = cred.user;
+        updateAuthUI();
+        return true;
+      } catch (signInErr) {
+        const errCode = signInErr?.code || '';
+        // Se a conta automática da família ainda não existe, cria agora mesmo
+        if (
+          errCode.includes('user-not-found') ||
+          errCode.includes('invalid-credential') ||
+          errCode.includes('invalid-login-credentials')
+        ) {
+          try {
+            const createCred = await createUserWithEmailAndPassword(auth, autoEmail, autoPass);
+            currentUser = createCred.user;
+            updateAuthUI();
+            return true;
+          } catch (createErr) {
+            console.warn('Não foi possível criar sessão automática por e-mail:', createErr);
+            return false;
+          }
+        }
+        console.warn('Erro ao entrar na sessão por e-mail:', signInErr);
+        return false;
+      }
+    }
+
+    async function initDataLayer() {
+      document.getElementById('header-family-code').textContent = familyCode;
+
+      if (!hasValidFirebaseConfig) {
+        updateSyncBadge('local', 'Modo Local');
+        renderAll();
+        return;
+      }
+
+      try {
+        const app = initializeApp(activeFirebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+
+        // Monitora mudanças de login (E-mail/Senha ou sessão automática)
+        onAuthStateChanged(auth, (user) => {
+          currentUser = user || null;
+          updateAuthUI();
+          if (currentUser) {
+            subscribeToFamilyDocument(familyCode);
+          }
+        });
+
+        // Tenta conectar automaticamente usando o provedor E-mail/Senha ativado no projeto
+        const connectedViaEmail = await connectWithFamilyEmailSession(familyCode);
+
+        if (!connectedViaEmail && !auth.currentUser) {
+          // Caso não tenha conectado automaticamente, tenta anônimo ou pede login no botão Entrar
+          try {
+            const cred = await signInAnonymously(auth);
+            currentUser = cred.user;
+          } catch (anonErr) {
+            updateSyncBadge(
+              'local',
+              'Faça Login',
+              '<strong>Login por E-mail/Senha ativo!</strong> Clique em <strong>"🔐 Entrar com E-mail"</strong> para entrar ou criar sua conta e sincronizar na nuvem.'
+            );
+          }
+        }
+
+        renderAll();
+      } catch (err) {
+        console.warn('Aviso na inicialização do Firebase:', err);
+        updateSyncBadge(
+          'local',
+          'Faça Login',
+          'Clique em <strong>"🔐 Entrar com E-mail"</strong> no topo para autenticar com seu e-mail e senha.'
+        );
+        renderAll();
+      }
+    }
+
+    function subscribeToFamilyDocument(code) {
+      if (!db || !currentUser) {
+        renderAll();
+        return;
+      }
+
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+
+      // Caminho estruturado para os dados da família
+      const familyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'families', code);
+
+      unsubscribeSnapshot = onSnapshot(
+        familyDocRef,
+        async (snapshot) => {
+          updateSyncBadge('cloud');
+          if (snapshot.exists()) {
+            const remoteData = snapshot.data();
+            if (remoteData && remoteData.payload) {
+              try {
+                appData = JSON.parse(remoteData.payload);
+                renderAll();
+              } catch (parseErr) {
+                console.error('Erro ao ler JSON da família:', parseErr);
+              }
+            }
+          } else {
+            // Primeiro acesso deste código da família: salva os dados atuais na nuvem
+            await saveFamilyData(false);
+            renderAll();
+          }
+        },
+        (error) => {
+          console.warn('Erro na sincronização em tempo real, mantendo modo local:', error);
+          const errCode = error?.code || '';
+          if (errCode.includes('permission-denied')) {
+            updateSyncBadge(
+              'local',
+              'Ajustar Regras',
+              '<strong>Permissão pendente no Firestore (casaemdia-e922f):</strong> Vá em <em>Firestore Database > Regras</em> no Firebase Console e publique as regras liberando leitura/escrita para usuários autenticados.'
+            );
+          } else {
+            updateSyncBadge('local', 'Modo Local');
+          }
+          renderAll();
+        }
+      );
+    }
+
+    async function saveFamilyData(shouldRender = true) {
+      appData.updatedAt = Date.now();
+      if (shouldRender) {
+        renderAll();
+      }
+
+      if (!db || !currentUser) return;
+
+      try {
+        isSavingRemote = true;
+        const familyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'families', familyCode);
+        await setDoc(familyDocRef, {
+          familyCode,
+          updatedAt: appData.updatedAt,
+          updatedBy: currentUser.uid,
+          payload: JSON.stringify(appData)
+        });
+      } catch (err) {
+        console.warn('Não foi possível salvar na nuvem agora:', err);
+        updateSyncBadge('local', 'Sem Conexão');
+      } finally {
+        isSavingRemote = false;
+      }
+    }
+
+    // ============================================================================
+    // 7. ALGORITMO DE DIVISÃO JUSTA E CÁLCULO DE CARGA SEMANAL
+    // ============================================================================
+    // Calcula quantas vezes por semana uma tarefa ocorre em média
+    function getWeeklyOccurrencesCount(task) {
+      switch (task.frequency) {
+        case 'diaria': return 7;
+        case 'semanal': return Math.max(1, (task.weekdays || []).length);
+        case 'quinzenal': return Math.max(0.5, ((task.weekdays || []).length) / 2);
+        case 'mensal': return 0.25;
+        case 'unica': return 1;
+        default: return 1;
+      }
+    }
+
+    // Calcula a carga semanal de cada membro (minutos totais, pontos de esforço e qtd de tarefas)
+    function calculateWeeklyWorkloadByMember() {
+      const stats = {};
+      (appData.members || []).forEach(m => {
+        stats[m.id] = {
+          member: m,
+          weeklyMinutes: 0,
+          weeklyEffortScore: 0,
+          taskCount: 0
+        };
+      });
+
+      const refDate = getStartOfWeekSunday(new Date(), weekOffset);
+
+      (appData.tasks || []).forEach(task => {
+        const occ = getWeeklyOccurrencesCount(task);
+        const mins = (Number(task.duration) || 15) * occ;
+        const effortPoints = (EFFORT_META[task.effort]?.points || 10) * occ;
+        const assigneeId = getEffectiveAssigneeId(task, refDate);
+
+        if (stats[assigneeId]) {
+          stats[assigneeId].weeklyMinutes += Math.round(mins);
+          stats[assigneeId].weeklyEffortScore += Math.round(effortPoints);
+          stats[assigneeId].taskCount += 1;
+        }
+      });
+
+      return stats;
+    }
+
+    // Algoritmo guloso ponderado que distribui as tarefas equilibrando tempo, esforço e idade
+    function autoDistributeTasksFairly() {
+      const members = appData.members || [];
+      if (members.length === 0) {
+        showToast('Cadastre pelo menos 1 membro da família antes de distribuir!', 'amber');
+        return;
+      }
+
+      // Peso acumulado de cada membro (crianças têm capacidade alvo de 45% de um adulto)
+      const loadTracker = {};
+      members.forEach(m => {
+        loadTracker[m.id] = {
+          currentScore: 0,
+          capacityMultiplier: m.role === 'child' ? 2.2 : 1.0 // Multiplicador maior faz encher mais rápido
+        };
+      });
+
+      // Ordena tarefas da mais pesada/longa para a mais leve
+      const sortedTasks = [...(appData.tasks || [])].sort((a, b) => {
+        const weightA = getWeeklyOccurrencesCount(a) * (Number(a.duration) || 15) * (Number(a.effort) || 1);
+        const weightB = getWeeklyOccurrencesCount(b) * (Number(b.duration) || 15) * (Number(b.effort) || 1);
+        return weightB - weightA;
+      });
+
+      sortedTasks.forEach(task => {
+        // Filtra candidatos elegíveis (respeita restrição de adultos e esforço 3)
+        let candidates = members.filter(m => {
+          if (task.adultOnly || Number(task.effort) === 3) {
+            return m.role === 'adult';
+          }
+          if (m.role === 'child' && Number(task.duration) > 30) {
+            return false;
+          }
+          return true;
+        });
+
+        if (candidates.length === 0) {
+          candidates = members;
+        }
+
+        // Escolhe o candidato com menor carga ponderada atual
+        candidates.sort((m1, m2) => {
+          return loadTracker[m1.id].currentScore - loadTracker[m2.id].currentScore;
+        });
+
+        const chosen = candidates[0];
+        task.assigneeId = chosen.id;
+
+        const taskWeight = getWeeklyOccurrencesCount(task) * (Number(task.duration) || 15) * (Number(task.effort) || 1);
+        loadTracker[chosen.id].currentScore += taskWeight * loadTracker[chosen.id].capacityMultiplier;
+      });
+
+      saveFamilyData(true);
+      showToast('⚖️ Tarefas distribuídas de forma justa entre a família!', 'emerald');
+    }
+
+    // ============================================================================
+    // 8. RENDERIZAÇÃO DA INTERFACE (DOM)
+    // ============================================================================
+    function renderAll() {
+      renderTopProgressAndFilters();
+      renderTodayTab();
+      renderWeekTab();
+      renderTasksTab();
+      renderFamilyTab();
+      renderMoreTab();
+    }
+
+    function renderTopProgressAndFilters() {
+      const now = new Date();
+      const todayIso = formatIsoDate(now);
+      const dowName = WEEKDAY_NAMES_FULL[now.getDay()];
+      document.getElementById('current-date-label').textContent = `${dowName}, ${formatBrDate(now)}`;
+      document.getElementById('header-family-code').textContent = familyCode;
+
+      // Atualiza selects de membros nos filtros e formulários
+      const filterMemberEl = document.getElementById('filter-member');
+      const currentMemberFilter = filterMemberEl.value || 'all';
+      const memberOptionsHtml = (appData.members || []).map(m =>
+        `<option value="${m.id}">${m.emoji} ${escapeHtml(m.name)} (${m.role === 'child' ? 'Criança' : 'Adulto'})</option>`
+      ).join('');
+
+      filterMemberEl.innerHTML = `<option value="all">👨‍👩‍👧‍👦 Todos da família</option>${memberOptionsHtml}`;
+      if ([...filterMemberEl.options].some(o => o.value === currentMemberFilter)) {
+        filterMemberEl.value = currentMemberFilter;
+      }
+
+      // Popula selects de responsável em modais e recados
+      const assigneeSelect = document.getElementById('task-assignee');
+      if (assigneeSelect) assigneeSelect.innerHTML = memberOptionsHtml;
+      const swapSelect = document.getElementById('swap-target-member');
+      if (swapSelect) swapSelect.innerHTML = memberOptionsHtml;
+      const noteAuthorSelect = document.getElementById('note-author');
+      if (noteAuthorSelect) {
+        noteAuthorSelect.innerHTML = (appData.members || []).map(m =>
+          `<option value="${escapeHtml(m.name)}">${m.emoji} ${escapeHtml(m.name)}</option>`
+        ).join('');
+      }
+
+      // Calcula progresso das tarefas de Hoje
+      const todayTasks = (appData.tasks || []).filter(t => doesTaskOccurOnDate(t, now));
+      const totalToday = todayTasks.length;
+      const completedToday = todayTasks.filter(t => isTaskCompletedOnDate(t.id, todayIso)).length;
+      const pct = totalToday === 0 ? 100 : Math.round((completedToday / totalToday) * 100);
+
+      document.getElementById('house-status-title').textContent =
+        totalToday === 0 ? 'Nenhuma tarefa programada para hoje' : `Casa ${pct}% em dia hoje`;
+      document.getElementById('house-progress-bar').style.width = `${pct}%`;
+      document.getElementById('house-progress-counts').textContent =
+        `${completedToday} de ${totalToday} tarefas concluídas hoje`;
+
+      // Banner de parabéns
+      const congratsEl = document.getElementById('congrats-banner');
+      if (totalToday > 0 && completedToday === totalToday) {
+        congratsEl.classList.remove('hidden');
+      } else {
+        congratsEl.classList.add('hidden');
+      }
+
+      // Calcula pontos da semana e atrasadas
+      const overdueItems = getOverdueOccurrencesThisWeek();
+      const overdueBadge = document.getElementById('house-overdue-indicator');
+      if (overdueItems.length > 0) {
+        overdueBadge.classList.remove('hidden');
+        overdueBadge.textContent = `⚠️ ${overdueItems.length} atrasada(s) na semana`;
+      } else {
+        overdueBadge.classList.add('hidden');
+      }
+
+      // Gamificação opcional
+      const gamificationEnabled = appData.settings?.gamificationEnabled !== false;
+      const gamificationPill = document.getElementById('gamification-pill');
+      const rankingCard = document.getElementById('today-ranking-card');
+      document.getElementById('toggle-gamification').checked = gamificationEnabled;
+      document.getElementById('toggle-auto-rotation').checked = appData.settings?.autoRotationEnabled !== false;
+
+      if (gamificationEnabled) {
+        gamificationPill.classList.remove('hidden');
+        rankingCard.classList.remove('hidden');
+        const weeklyPts = getWeeklyPointsByMember();
+        const totalWeeklyPts = Object.values(weeklyPts).reduce((acc, v) => acc + v, 0);
+        document.getElementById('weekly-points-badge').textContent = `${totalWeeklyPts} pts na semana`;
+      } else {
+        gamificationPill.classList.add('hidden');
+        rankingCard.classList.add('hidden');
+      }
+    }
+
+    // Identifica todas as ocorrências atrasadas desde o Domingo desta semana até ontem
+    function getOverdueOccurrencesThisWeek() {
+      const now = new Date();
+      const todayIso = formatIsoDate(now);
+      const startSunday = getStartOfWeekSunday(now, 0);
+      const overdue = [];
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startSunday);
+        d.setDate(startSunday.getDate() + i);
+        const iso = formatIsoDate(d);
+        if (iso >= todayIso) break; // Só dias anteriores a hoje
+
+        (appData.tasks || []).forEach(task => {
+          if (doesTaskOccurOnDate(task, d) && !isTaskCompletedOnDate(task.id, iso)) {
+            overdue.push({
+              task,
+              isoDate: iso,
+              dateObj: d,
+              assigneeId: getEffectiveAssigneeId(task, d)
+            });
+          }
+        });
+      }
+      return overdue;
+    }
+
+    function renderTodayTab() {
+      const now = new Date();
+      const todayIso = formatIsoDate(now);
+      const memberFilter = document.getElementById('filter-member').value;
+      const roomFilter = document.getElementById('filter-room').value;
+      const statusFilter = document.getElementById('filter-status').value;
+
+      // 1. Renderiza Pedidos de Troca Pendentes
+      const swaps = appData.swapRequests || [];
+      const swapsBanner = document.getElementById('swaps-banner-hoje');
+      const swapsList = document.getElementById('swaps-list-hoje');
+      if (swaps.length > 0) {
+        swapsBanner.classList.remove('hidden');
+        swapsList.innerHTML = swaps.map(sw => {
+          const task = (appData.tasks || []).find(t => t.id === sw.taskId);
+          const fromMem = (appData.members || []).find(m => m.id === sw.fromMemberId);
+          const toMem = (appData.members || []).find(m => m.id === sw.toMemberId);
+          if (!task || !toMem) return '';
+          return `
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-stone-800 p-3 rounded-2xl border border-indigo-200 dark:border-indigo-800">
+              <div class="text-xs">
+                <p class="font-semibold text-stone-800 dark:text-stone-100">
+                  ${fromMem ? `${fromMem.emoji} ${escapeHtml(fromMem.name)}` : 'Alguém'} pediu troca com <strong>${toMem.emoji} ${escapeHtml(toMem.name)}</strong>
+                </p>
+                <p class="text-stone-500 dark:text-stone-400">Tarefa: <strong>${escapeHtml(task.name)}</strong> ${sw.message ? `— "${escapeHtml(sw.message)}"` : ''}</p>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button type="button" data-accept-swap="${sw.id}" class="px-3 py-1.5 rounded-xl bg-brand-600 text-white text-xs font-semibold">Aceitar</button>
+                <button type="button" data-Reject-swap="${sw.id}" class="px-3 py-1.5 rounded-xl bg-stone-200 dark:bg-stone-700 text-xs font-semibold">Recusar</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        swapsBanner.classList.add('hidden');
+      }
+
+      // 2. Renderiza Tarefas Atrasadas da Semana
+      let overdueItems = getOverdueOccurrencesThisWeek();
+      if (memberFilter !== 'all') overdueItems = overdueItems.filter(o => o.assigneeId === memberFilter);
+      if (roomFilter !== 'all') overdueItems = overdueItems.filter(o => o.task.room === roomFilter);
+
+      const overdueSection = document.getElementById('overdue-section');
+      const overdueList = document.getElementById('overdue-list');
+      if (overdueItems.length > 0 && (statusFilter === 'all' || statusFilter === 'overdue' || statusFilter === 'pending')) {
+        overdueSection.classList.remove('hidden');
+        document.getElementById('overdue-count-pill').textContent = overdueItems.length;
+        overdueList.innerHTML = overdueItems.map(item => {
+          const mem = (appData.members || []).find(m => m.id === item.assigneeId);
+          const roomMeta = ROOM_META[item.task.room] || ROOM_META.geral;
+          return `
+            <div class="flex items-center justify-between gap-3 bg-white dark:bg-stone-800 p-3 rounded-2xl border border-rose-200 dark:border-rose-800/80 shadow-2xs">
+              <div class="flex items-center gap-3 min-w-0">
+                <button type="button" data-toggle-task="${item.task.id}" data-toggle-date="${item.isoDate}" aria-label="Marcar tarefa atrasada como concluída" class="w-7 h-7 rounded-xl border-2 border-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 flex items-center justify-center shrink-0 transition-colors">
+                </button>
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="font-semibold text-sm text-stone-900 dark:text-stone-100 truncate">${escapeHtml(item.task.name)}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200">
+                      Atrasada (${WEEKDAY_NAMES_SHORT[item.dateObj.getDay()]} ${formatBrDate(item.isoDate).slice(0,5)})
+                    </span>
+                  </div>
+                  <p class="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                    ${mem ? `${mem.emoji} ${escapeHtml(mem.name)}` : 'Sem responsável'} • ${roomMeta.emoji} ${roomMeta.label} • ⏱️ ${item.task.duration} min
+                  </p>
+                </div>
+              </div>
+              <button type="button" data-toggle-task="${item.task.id}" data-toggle-date="${item.isoDate}" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shrink-0">
+                Concluir
+              </button>
+            </div>
+          `;
+        }).join('');
+      } else {
+        overdueSection.classList.add('hidden');
+      }
+
+      // 3. Renderiza Tarefas de Hoje Agrupadas por Pessoa
+      const container = document.getElementById('today-tasks-by-member');
+      if (statusFilter === 'overdue') {
+        container.innerHTML = `<div class="text-center py-6 text-xs text-stone-500">Exibindo apenas tarefas atrasadas acima.</div>`;
+      } else {
+        const membersToRender = (appData.members || []).filter(m => memberFilter === 'all' || m.id === memberFilter);
+        const cardsHtml = membersToRender.map(member => {
+          let memberTasks = (appData.tasks || []).filter(task => {
+            if (!doesTaskOccurOnDate(task, now)) return false;
+            if (getEffectiveAssigneeId(task, now) !== member.id) return false;
+            if (roomFilter !== 'all' && task.room !== roomFilter) return false;
+            const completed = isTaskCompletedOnDate(task.id, todayIso);
+            if (statusFilter === 'pending' && completed) return false;
+            if (statusFilter === 'completed' && !completed) return false;
+            return true;
+          });
+
+          const totalForMember = memberTasks.length;
+          const doneForMember = memberTasks.filter(t => isTaskCompletedOnDate(t.id, todayIso)).length;
+
+          return `
+            <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 sm:p-5 shadow-sm border border-stone-200/70 dark:border-stone-700/70">
+              <div class="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-stone-100 dark:border-stone-700/60">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-10 h-10 rounded-2xl flex items-center justify-center text-xl shadow-2xs" style="background-color: ${member.color}22; border: 2px solid ${member.color}">
+                    ${member.emoji}
+                  </span>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h3 class="font-display font-bold text-base text-stone-900 dark:text-white">${escapeHtml(member.name)}</h3>
+                      <span class="text-[11px] px-2 py-0.5 rounded-full font-medium bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300">
+                        ${member.role === 'child' ? '🧒 Criança' : '🧑 Adulto'}
+                      </span>
+                    </div>
+                    <p class="text-xs text-stone-500 dark:text-stone-400">
+                      ${totalForMember === 0 ? 'Livre hoje!' : `${doneForMember} de ${totalForMember} concluída(s) hoje`}
+                    </p>
+                  </div>
+                </div>
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full ${totalForMember > 0 && doneForMember === totalForMember ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300' : 'bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300'}">
+                  ${totalForMember > 0 && doneForMember === totalForMember ? '✅ Tudo pronto!' : `${doneForMember}/${totalForMember}`}
+                </span>
+              </div>
+
+              ${memberTasks.length === 0 ? `
+                <p class="text-xs text-stone-400 dark:text-stone-500 py-2 italic">Nenhuma tarefa neste filtro para hoje.</p>
+              ` : `
+                <div class="space-y-2.5">
+                  ${memberTasks.map(task => renderSingleTaskRow(task, todayIso)).join('')}
+                </div>
+              `}
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = cardsHtml || `<div class="bg-white dark:bg-warm-800 rounded-3xl p-8 text-center text-sm text-stone-500">Nenhum membro encontrado. Adicione membros na aba Família!</div>`;
+      }
+
+      // 4. Renderiza Ranking Semanal Amigável
+      renderWeeklyRankingCards();
+    }
+
+    function renderSingleTaskRow(task, isoDate) {
+      const done = isTaskCompletedOnDate(task.id, isoDate);
+      const roomMeta = ROOM_META[task.room] || ROOM_META.geral;
+      const effortMeta = EFFORT_META[task.effort] || EFFORT_META[1];
+      const gamificationEnabled = appData.settings?.gamificationEnabled !== false;
+
+      return `
+        <div class="group flex items-start sm:items-center justify-between gap-3 p-3 rounded-2xl border transition-all ${
+          done
+            ? 'bg-stone-50/80 dark:bg-stone-800/40 border-stone-200/60 dark:border-stone-700/50 opacity-75'
+            : 'bg-stone-50/40 dark:bg-stone-700/30 border-stone-200/90 dark:border-stone-600/80 hover:border-brand-400'
+        }">
+          <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+            <button
+              type="button"
+              data-toggle-task="${task.id}"
+              data-toggle-date="${isoDate}"
+              aria-label="${done ? 'Desmarcar tarefa' : 'Concluir tarefa'}"
+              class="mt-0.5 sm:mt-0 w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                done
+                  ? 'bg-brand-600 text-white border-2 border-brand-600 shadow-xs'
+                  : 'bg-white dark:bg-stone-800 border-2 border-stone-300 dark:border-stone-500 hover:border-brand-500'
+              }"
+            >
+              ${done ? '✓' : ''}
+            </button>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="font-semibold text-sm ${done ? 'line-through text-stone-400 dark:text-stone-500' : 'text-stone-900 dark:text-stone-100'}">
+                  ${escapeHtml(task.name)}
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${roomMeta.badge}">
+                  ${roomMeta.emoji} ${roomMeta.label}
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${effortMeta.badge}">
+                  ${effortMeta.icon} ${effortMeta.label}${gamificationEnabled ? ` (+${effortMeta.points} pts)` : ''}
+                </span>
+                ${task.rotateWeekly ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-medium">🔄 Rodízio</span>` : ''}
+              </div>
+              <div class="flex flex-wrap items-center gap-3 text-xs text-stone-500 dark:text-stone-400 mt-1">
+                <span>⏱️ ${task.duration} min</span>
+                ${task.notes ? `<span class="truncate max-w-xs sm:max-w-md">💬 ${escapeHtml(task.notes)}</span>` : ''}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" data-open-swap="${task.id}" title="Trocar responsável ou pedir ajuda" class="p-2 rounded-xl text-xs font-semibold text-stone-500 hover:text-brand-600 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
+              🔄 Trocar
+            </button>
+            <button type="button" data-edit-task="${task.id}" title="Editar tarefa" class="p-2 rounded-xl text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
+              ✏️
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function getWeeklyPointsByMember() {
+      const points = {};
+      (appData.members || []).forEach(m => { points[m.id] = 0; });
+
+      const startSunday = getStartOfWeekSunday(new Date(), 0);
+      const weekDates = new Set();
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startSunday);
+        d.setDate(startSunday.getDate() + i);
+        weekDates.add(formatIsoDate(d));
+      }
+
+      Object.entries(appData.completions || {}).forEach(([key, record]) => {
+        const isoDate = key.split('_').pop();
+        if (weekDates.has(isoDate) && record && points[record.memberId] !== undefined) {
+          points[record.memberId] += Number(record.points || 10);
+        }
+      });
+
+      return points;
+    }
+
+    function renderWeeklyRankingCards() {
+      const listEl = document.getElementById('today-ranking-list');
+      if (!listEl) return;
+
+      const ptsMap = getWeeklyPointsByMember();
+      const ranked = [...(appData.members || [])].sort((a, b) => (ptsMap[b.id] || 0) - (ptsMap[a.id] || 0));
+
+      const medals = ['🥇', '🥈', '🥉', '⭐'];
+      listEl.innerHTML = ranked.map((m, idx) => `
+        <div class="p-3 rounded-2xl bg-stone-50 dark:bg-stone-700/40 border border-stone-200/60 dark:border-stone-600/60 flex items-center justify-between">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="text-lg">${medals[idx] || '⭐'}</span>
+            <div class="min-w-0">
+              <p class="font-semibold text-xs sm:text-sm truncate">${m.emoji} ${escapeHtml(m.name)}</p>
+              <p class="text-[11px] text-stone-500 dark:text-stone-400">${ptsMap[m.id] || 0} pontos na semana</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ============================================================================
+    // 9. RENDERIZAÇÃO DA ABA SEMANA (Grade Domingo a Sábado x Membros)
+    // ============================================================================
+    function renderWeekTab() {
+      const startSunday = getStartOfWeekSunday(new Date(), weekOffset);
+      const endSaturday = new Date(startSunday);
+      endSaturday.setDate(startSunday.getDate() + 6);
+
+      document.getElementById('week-range-label').textContent =
+        `Semana de ${formatBrDate(startSunday)} a ${formatBrDate(endSaturday)}`;
+
+      const todayIso = formatIsoDate(new Date());
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startSunday);
+        d.setDate(startSunday.getDate() + i);
+        days.push({
+          dateObj: d,
+          iso: formatIsoDate(d),
+          shortName: WEEKDAY_NAMES_SHORT[i],
+          dayMonth: formatBrDate(d).slice(0, 5)
+        });
+      }
+
+      // Cabeçalho da Tabela
+      const headerEl = document.getElementById('week-grid-header');
+      headerEl.innerHTML = `
+        <th class="p-3 w-36 font-bold text-stone-700 dark:text-stone-200 border-r border-stone-200 dark:border-stone-700">Membro</th>
+        ${days.map(day => `
+          <th class="p-2.5 text-center min-w-[115px] ${day.iso === todayIso ? 'bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300 font-bold' : ''}">
+            <div>${day.shortName}</div>
+            <div class="text-[11px] font-normal opacity-80">${day.dayMonth}</div>
+          </th>
+        `).join('')}
+      `;
+
+      const memberFilter = document.getElementById('filter-member').value;
+      const roomFilter = document.getElementById('filter-room').value;
+      const statusFilter = document.getElementById('filter-status').value;
+
+      const members = (appData.members || []).filter(m => memberFilter === 'all' || m.id === memberFilter);
+      const bodyEl = document.getElementById('week-grid-body');
+
+      bodyEl.innerHTML = members.map(member => {
+        const cellsHtml = days.map(day => {
+          const dayTasks = (appData.tasks || []).filter(task => {
+            if (!doesTaskOccurOnDate(task, day.dateObj)) return false;
+            if (getEffectiveAssigneeId(task, day.dateObj) !== member.id) return false;
+            if (roomFilter !== 'all' && task.room !== roomFilter) return false;
+            const done = isTaskCompletedOnDate(task.id, day.iso);
+            const isOverdue = !done && day.iso < todayIso;
+            if (statusFilter === 'pending' && done) return false;
+            if (statusFilter === 'completed' && !done) return false;
+            if (statusFilter === 'overdue' && !isOverdue) return false;
+            return true;
+          });
+
+          return `
+            <td class="p-2 align-top border-l border-stone-100 dark:border-stone-700/50 ${day.iso === todayIso ? 'bg-brand-50/30 dark:bg-brand-950/20' : ''}">
+              <div class="space-y-1.5">
+                ${dayTasks.map(task => {
+                  const done = isTaskCompletedOnDate(task.id, day.iso);
+                  const isOverdue = !done && day.iso < todayIso;
+                  const roomMeta = ROOM_META[task.room] || ROOM_META.geral;
+                  return `
+                    <button
+                      type="button"
+                      data-toggle-task="${task.id}"
+                      data-toggle-date="${day.iso}"
+                      title="Clique para concluir ou reabrir"
+                      class="w-full text-left p-1.5 rounded-xl border text-[11px] leading-tight transition-all block ${
+                        done
+                          ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60 line-through text-stone-400'
+                          : isOverdue
+                            ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 font-semibold'
+                            : 'bg-stone-50 dark:bg-stone-700/60 border-stone-200 dark:border-stone-600 hover:border-brand-400'
+                      }"
+                    >
+                      <div class="flex items-center justify-between gap-1">
+                        <span class="truncate">${roomMeta.emoji} ${escapeHtml(task.name)}</span>
+                        <span>${done ? '✅' : isOverdue ? '⚠️' : '⬜'}</span>
+                      </div>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </td>
+          `;
+        }).join('');
+
+        return `
+          <tr>
+            <td class="p-3 align-top font-semibold border-r border-stone-200 dark:border-stone-700">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">${member.emoji}</span>
+                <span class="truncate">${escapeHtml(member.name)}</span>
+              </div>
+            </td>
+            ${cellsHtml}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ============================================================================
+    // 10. RENDERIZAÇÃO DA ABA TAREFAS (Catálogo, Biblioteca e Checklists)
+    // ============================================================================
+    function renderTasksTab() {
+      const memberFilter = document.getElementById('filter-member').value;
+      const roomFilter = document.getElementById('filter-room').value;
+      const now = new Date();
+
+      // 10.1 Catálogo de Tarefas Cadastradas
+      const catalogList = document.getElementById('catalog-tasks-list');
+      const filteredTasks = (appData.tasks || []).filter(t => {
+        const effAssignee = getEffectiveAssigneeId(t, now);
+        if (memberFilter !== 'all' && effAssignee !== memberFilter) return false;
+        if (roomFilter !== 'all' && t.room !== roomFilter) return false;
+        return true;
+      });
+
+      if (filteredTasks.length === 0) {
+        catalogList.innerHTML = `
+          <div class="col-span-full bg-white dark:bg-warm-800 rounded-3xl p-8 text-center border border-stone-200/70 dark:border-stone-700/70">
+            <p class="text-sm text-stone-500">Nenhuma tarefa encontrada neste filtro. Adicione uma nova tarefa ou use a Biblioteca 1-Clique!</p>
+          </div>
+        `;
+      } else {
+        catalogList.innerHTML = filteredTasks.map(task => {
+          const roomMeta = ROOM_META[task.room] || ROOM_META.geral;
+          const effortMeta = EFFORT_META[task.effort] || EFFORT_META[1];
+          const effId = getEffectiveAssigneeId(task, now);
+          const member = (appData.members || []).find(m => m.id === effId);
+          const freqLabel = formatFrequencyDescription(task);
+
+          return `
+            <div class="bg-white dark:bg-warm-800 rounded-3xl p-4 shadow-sm border border-stone-200/70 dark:border-stone-700/70 flex flex-col justify-between gap-3">
+              <div>
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${roomMeta.badge}">${roomMeta.emoji} ${roomMeta.label}</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${effortMeta.badge}">${effortMeta.icon} Esforço ${task.effort}</span>
+                    ${task.adultOnly ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-200 dark:bg-stone-700">🔞 Adulto</span>` : ''}
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <button type="button" data-edit-task="${task.id}" class="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 text-xs" title="Editar">✏️</button>
+                    <button type="button" data-delete-task="${task.id}" class="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40 text-xs" title="Excluir">🗑️</button>
+                  </div>
+                </div>
+                <h4 class="font-display font-bold text-base mt-2">${escapeHtml(task.name)}</h4>
+                <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">📅 ${freqLabel} • ⏱️ ${task.duration} min</p>
+                ${task.notes ? `<p class="text-xs text-stone-600 dark:text-stone-300 mt-1.5 bg-stone-50 dark:bg-stone-700/40 p-2 rounded-xl">💬 ${escapeHtml(task.notes)}</p>` : ''}
+              </div>
+
+              <div class="pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center justify-between text-xs">
+                <span class="font-medium">
+                  Responsável: <strong>${member ? `${member.emoji} ${escapeHtml(member.name)}` : 'Não definido'}</strong>
+                  ${task.rotateWeekly ? '<span class="text-indigo-600 dark:text-indigo-400">(🔄 Rodízio)</span>' : ''}
+                </span>
+                <button type="button" data-open-swap="${task.id}" class="text-brand-600 dark:text-brand-400 font-semibold hover:underline">Trocar</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 10.2 Biblioteca de Tarefas Sugeridas 1-Clique
+      const libGrid = document.getElementById('suggested-library-grid');
+      libGrid.innerHTML = SUGGESTED_TASKS_LIBRARY.map((sug, index) => {
+        const roomMeta = ROOM_META[sug.room] || ROOM_META.geral;
+        const effortMeta = EFFORT_META[sug.effort] || EFFORT_META[1];
+        const alreadyAdded = (appData.tasks || []).some(t => t.name.toLowerCase() === sug.name.toLowerCase());
+
+        return `
+          <div class="bg-white dark:bg-warm-800 rounded-2xl p-4 border border-stone-200/70 dark:border-stone-700/70 flex flex-col justify-between gap-3">
+            <div>
+              <div class="flex items-center justify-between gap-1 mb-1.5">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${roomMeta.badge}">${roomMeta.emoji} ${roomMeta.label}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${effortMeta.badge}">${effortMeta.icon} Esforço ${sug.effort}</span>
+              </div>
+              <h4 class="font-display font-bold text-sm">${escapeHtml(sug.name)}</h4>
+              <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">⏱️ ${sug.duration} min • Frequência: ${sug.frequency}</p>
+            </div>
+            <button
+              type="button"
+              data-add-suggested="${index}"
+              class="w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all ${
+                alreadyAdded
+                  ? 'bg-stone-100 dark:bg-stone-700 text-stone-500'
+                  : 'bg-brand-600 hover:bg-brand-700 text-white shadow-2xs'
+              }"
+            >
+              ${alreadyAdded ? '✓ Já está na lista (+ Adicionar outra)' : '➕ Adicionar com 1 Clique'}
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      // 10.3 Checklists por Cômodo
+      renderRoomChecklists();
+    }
+
+    function formatFrequencyDescription(task) {
+      if (task.frequency === 'diaria') return 'Diária (todos os dias)';
+      if (task.frequency === 'semanal') {
+        const names = (task.weekdays || []).map(d => WEEKDAY_NAMES_SHORT[Number(d)]).join(', ');
+        return `Semanal (${names || 'Seg'})`;
+      }
+      if (task.frequency === 'quinzenal') {
+        const names = (task.weekdays || []).map(d => WEEKDAY_NAMES_SHORT[Number(d)]).join(', ');
+        return `Quinzenal (${names || 'Sáb'})`;
+      }
+      if (task.frequency === 'mensal') return `Mensal (todo dia ${task.monthDay || 5})`;
+      if (task.frequency === 'unica') return `Única em ${formatBrDate(task.onceDate || formatIsoDate(new Date()))}`;
+      return task.frequency;
+    }
+
+    function renderRoomChecklists() {
+      const mode = document.getElementById('checklist-mode-select').value || 'diaria';
+      const roomsObj = ROOM_CHECKLISTS[mode] || ROOM_CHECKLISTS.diaria;
+      const container = document.getElementById('room-checklists-container');
+      const doneMap = appData.checklistDone || {};
+
+      container.innerHTML = Object.entries(roomsObj).map(([roomKey, items]) => {
+        const roomMeta = ROOM_META[roomKey] || ROOM_META.geral;
+        return `
+          <div class="p-4 rounded-2xl bg-stone-50 dark:bg-stone-700/40 border border-stone-200/70 dark:border-stone-600/60">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-display font-bold text-sm flex items-center gap-1.5">
+                <span>${roomMeta.emoji}</span> ${roomMeta.label}
+              </span>
+              <button type="button" data-convert-checklist="${mode}:${roomKey}" class="text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:underline">
+                + Virar tarefas da família
+              </button>
+            </div>
+            <div class="space-y-2">
+              ${items.map((itemText, idx) => {
+                const checkKey = `${mode}_${roomKey}_${idx}`;
+                const checked = Boolean(doneMap[checkKey]);
+                return `
+                  <label class="flex items-center gap-2.5 text-xs cursor-pointer">
+                    <input type="checkbox" data-checklist-key="${checkKey}" ${checked ? 'checked' : ''} class="rounded text-brand-600 w-4 h-4" />
+                    <span class="${checked ? 'line-through text-stone-400' : 'text-stone-700 dark:text-stone-200'}">${escapeHtml(itemText)}</span>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ============================================================================
+    // 11. RENDERIZAÇÃO DA ABA FAMÍLIA (Gráfico de Carga & Cartões de Membros)
+    // ============================================================================
+    function renderFamilyTab() {
+      const workload = calculateWeeklyWorkloadByMember();
+      const entries = Object.values(workload);
+      const maxScore = Math.max(10, ...entries.map(e => e.weeklyEffortScore));
+
+      // Calcula índice simples de equilíbrio entre adultos
+      const adultScores = entries.filter(e => e.member.role === 'adult').map(e => e.weeklyMinutes);
+      const badgeEl = document.getElementById('workload-fairness-badge');
+      if (adultScores.length >= 2) {
+        const maxMin = Math.max(...adultScores);
+        const minMin = Math.min(...adultScores);
+        const diff = maxMin - minMin;
+        if (diff <= 45) {
+          badgeEl.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300';
+          badgeEl.textContent = '✅ Divisão Bem Equilibrada';
+        } else {
+          badgeEl.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
+          badgeEl.textContent = '⚖️ Sugerido Redistribuir';
+        }
+      }
+
+      const chartEl = document.getElementById('workload-chart-container');
+      chartEl.innerHTML = entries.map(item => {
+        const pct = Math.min(100, Math.round((item.weeklyEffortScore / maxScore) * 100));
+        const hours = (item.weeklyMinutes / 60).toFixed(1).replace('.', ',');
+        return `
+          <div class="p-3 rounded-2xl bg-stone-50 dark:bg-stone-700/40 border border-stone-200/60 dark:border-stone-600/60">
+            <div class="flex flex-wrap items-center justify-between text-xs mb-1.5 gap-2">
+              <span class="font-bold flex items-center gap-1.5">
+                <span>${item.member.emoji}</span>
+                <span>${escapeHtml(item.member.name)}</span>
+                <span class="text-[10px] font-normal opacity-75">(${item.member.role === 'child' ? 'Criança' : 'Adulto'})</span>
+              </span>
+              <span class="text-stone-600 dark:text-stone-300 font-medium">
+                ⏱️ ${item.weeklyMinutes} min/sem (~${hours}h) • ⚡ ${item.weeklyEffortScore} pts de esforço (${item.taskCount} tarefas)
+              </span>
+            </div>
+            <div class="w-full h-3 bg-stone-200 dark:bg-stone-600 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500" style="width: ${pct}%; background-color: ${item.member.color}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Lista de membros cadastrados
+      const membersGrid = document.getElementById('family-members-grid');
+      membersGrid.innerHTML = (appData.members || []).map(member => {
+        const w = workload[member.id] || { taskCount: 0, weeklyMinutes: 0 };
+        return `
+          <div class="p-4 rounded-2xl bg-stone-50 dark:bg-stone-700/40 border border-stone-200/70 dark:border-stone-600/70 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0" style="background-color: ${member.color}25; border: 2px solid ${member.color}">
+                ${member.emoji}
+              </div>
+              <div class="min-w-0">
+                <h4 class="font-display font-bold text-sm sm:text-base truncate">${escapeHtml(member.name)}</h4>
+                <p class="text-xs text-stone-500 dark:text-stone-400">
+                  ${member.role === 'child' ? '🧒 Criança (Tarefas leves)' : '🧑 Adulto / Jovem'}
+                </p>
+                <p class="text-[11px] text-stone-400 mt-0.5">${w.taskCount} tarefa(s) • ${w.weeklyMinutes} min/sem</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" data-edit-member="${member.id}" class="p-2 rounded-xl hover:bg-stone-200 dark:hover:bg-stone-600 text-xs" title="Editar membro">✏️</button>
+              <button type="button" data-delete-member="${member.id}" class="p-2 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/40 text-xs" title="Remover membro">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ============================================================================
+    // 12. RENDERIZAÇÃO DA ABA MAIS (Compras, Avisos e Relatórios/Histórico)
+    // ============================================================================
+    function renderMoreTab() {
+      // 12.1 Lista de Compras
+      const shoppingContainer = document.getElementById('shopping-list-container');
+      const items = appData.shoppingList || [];
+      if (items.length === 0) {
+        shoppingContainer.innerHTML = `<p class="text-xs text-stone-400 py-4 text-center">A lista de compras está vazia.</p>`;
+      } else {
+        shoppingContainer.innerHTML = items.map(item => `
+          <div class="flex items-center justify-between gap-3 p-3 rounded-2xl bg-stone-50 dark:bg-stone-700/40 border border-stone-200/60 dark:border-stone-600/60">
+            <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+              <input type="checkbox" data-toggle-shopping="${item.id}" ${item.bought ? 'checked' : ''} class="rounded text-brand-600 w-5 h-5" />
+              <div class="min-w-0">
+                <span class="text-sm font-medium ${item.bought ? 'line-through text-stone-400' : ''}">${escapeHtml(item.text)}</span>
+                ${item.qty ? `<span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-stone-200 dark:bg-stone-600 text-stone-700 dark:text-stone-200">${escapeHtml(item.qty)}</span>` : ''}
+              </div>
+            </label>
+            <button type="button" data-delete-shopping="${item.id}" class="text-xs text-stone-400 hover:text-rose-600 p-1.5">✕</button>
+          </div>
+        `).join('');
+      }
+
+      // 12.2 Quadro de Avisos
+      const notesContainer = document.getElementById('notes-grid-container');
+      const notes = appData.notes || [];
+      const colorClasses = {
+        amber: 'bg-amber-100/90 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-100',
+        emerald: 'bg-emerald-100/90 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100',
+        sky: 'bg-sky-100/90 dark:bg-sky-950/50 border-sky-300 dark:border-sky-800 text-sky-950 dark:text-sky-100',
+        rose: 'bg-rose-100/90 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800 text-rose-950 dark:text-rose-100'
+      };
+      if (notes.length === 0) {
+        notesContainer.innerHTML = `<p class="col-span-full text-xs text-stone-400 py-4 text-center">Nenhum recado fixado no mural.</p>`;
+      } else {
+        notesContainer.innerHTML = notes.map(note => `
+          <div class="p-4 rounded-2xl border shadow-2xs flex flex-col justify-between gap-3 ${colorClasses[note.color] || colorClasses.amber}">
+            <p class="text-sm font-medium leading-relaxed">${escapeHtml(note.text)}</p>
+            <div class="flex items-center justify-between text-[11px] opacity-80 pt-2 border-t border-current/10">
+              <span>Por <strong>${escapeHtml(note.authorName || 'Família')}</strong> • ${formatBrDate(new Date(note.createdAt))}</span>
+              <button type="button" data-delete-note="${note.id}" class="font-bold hover:underline">Remover</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 12.3 Resumo Semanal & Histórico de Conclusões
+      renderWeeklyReportAndHistory();
+    }
+
+    function renderWeeklyReportAndHistory() {
+      const startSunday = getStartOfWeekSunday(new Date(), 0);
+      let totalPlannedWeek = 0;
+      let totalDoneWeek = 0;
+      const doneByMember = {};
+      (appData.members || []).forEach(m => { doneByMember[m.id] = 0; });
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startSunday);
+        d.setDate(startSunday.getDate() + i);
+        const iso = formatIsoDate(d);
+
+        (appData.tasks || []).forEach(task => {
+          if (doesTaskOccurOnDate(task, d)) {
+            totalPlannedWeek++;
+            const rec = appData.completions?.[getCompletionKey(task.id, iso)];
+            if (rec) {
+              totalDoneWeek++;
+              if (doneByMember[rec.memberId] !== undefined) {
+                doneByMember[rec.memberId]++;
+              }
+            }
+          }
+        });
+      }
+
+      const overdueCount = getOverdueOccurrencesThisWeek().length;
+      const ratePct = totalPlannedWeek === 0 ? 0 : Math.round((totalDoneWeek / totalPlannedWeek) * 100);
+
+      document.getElementById('report-summary-cards').innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+          <p class="text-xs text-emerald-700 dark:text-emerald-300 font-semibold">Concluídas na Semana</p>
+          <p class="font-display font-bold text-2xl text-emerald-900 dark:text-emerald-100 mt-1">${totalDoneWeek}</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/60">
+          <p class="text-xs text-sky-700 dark:text-sky-300 font-semibold">Planejadas na Semana</p>
+          <p class="font-display font-bold text-2xl text-sky-900 dark:text-sky-100 mt-1">${totalPlannedWeek}</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60">
+          <p class="text-xs text-rose-700 dark:text-rose-300 font-semibold">Atrasadas</p>
+          <p class="font-display font-bold text-2xl text-rose-900 dark:text-rose-100 mt-1">${overdueCount}</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60">
+          <p class="text-xs text-purple-700 dark:text-purple-300 font-semibold">Taxa de Conclusão</p>
+          <p class="font-display font-bold text-2xl text-purple-900 dark:text-purple-100 mt-1">${ratePct}%</p>
+        </div>
+      `;
+
+      const partBars = document.getElementById('report-participation-bars');
+      partBars.innerHTML = (appData.members || []).map(m => {
+        const count = doneByMember[m.id] || 0;
+        const pct = totalDoneWeek === 0 ? 0 : Math.round((count / totalDoneWeek) * 100);
+        return `
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-semibold">${m.emoji} ${escapeHtml(m.name)}</span>
+              <span>${count} concluída(s) (${pct}%)</span>
+            </div>
+            <div class="w-full h-2.5 bg-stone-100 dark:bg-stone-700 rounded-full overflow-hidden">
+              <div class="h-full rounded-full" style="width: ${pct}%; background-color: ${m.color}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Histórico de tarefas concluídas
+      const historyList = document.getElementById('history-log-list');
+      const historyItems = (appData.history || []).slice(0, 30);
+      if (historyItems.length === 0) {
+        historyList.innerHTML = `<p class="text-xs text-stone-400 py-4 text-center">Nenhuma tarefa concluída registrada ainda.</p>`;
+      } else {
+        historyList.innerHTML = historyItems.map(h => {
+          const mem = (appData.members || []).find(m => m.id === h.memberId);
+          const roomMeta = ROOM_META[h.room] || ROOM_META.geral;
+          return `
+            <div class="py-2.5 flex items-center justify-between gap-2 text-xs">
+              <div>
+                <span class="font-semibold text-stone-900 dark:text-stone-100">${escapeHtml(h.taskName)}</span>
+                <span class="text-stone-500"> — feito por <strong>${mem ? `${mem.emoji} ${escapeHtml(mem.name)}` : escapeHtml(h.memberName || 'Membro')}</strong> (${roomMeta.emoji} ${roomMeta.label})</span>
+              </div>
+              <span class="text-stone-400 shrink-0">${formatBrDateTime(h.completedAt)}</span>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // ============================================================================
+    // 13. ANIMAÇÃO DE CONFETE E TOASTS AMIGÁVEIS
+    // ============================================================================
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const pieces = Array.from({ length: 75 }, () => ({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * 100,
+        size: 6 + Math.random() * 6,
+        color: ['#22c55e', '#0ea5e9', '#f59e0b', '#f43f5e', '#8b5cf6'][Math.floor(Math.random() * 5)],
+        speedY: 2.5 + Math.random() * 3.5,
+        speedX: -2 + Math.random() * 4,
+        rotation: Math.random() * 360
+      }));
+
+      let frame = 0;
+      function animate() {
+        frame++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.y += p.speedY;
+          p.x += p.speedX;
+          p.rotation += 4;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+        if (frame < 140) {
+          requestAnimationFrame(animate);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function showToast(message, tone = 'emerald') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toneClasses = {
+        emerald: 'bg-stone-900 text-white dark:bg-white dark:text-stone-900',
+        amber: 'bg-amber-600 text-white',
+        rose: 'bg-rose-600 text-white'
+      };
+      const el = document.createElement('div');
+      el.className = `px-4 py-3 rounded-2xl shadow-lg text-xs font-semibold animate-pop pointer-events-auto ${toneClasses[tone] || toneClasses.emerald}`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.remove();
+      }, 3200);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // ============================================================================
+    // 14. INTERAÇÕES, EVENTOS E MANIPULAÇÃO DE MODAIS
+    // ============================================================================
+    function toggleTaskCompletion(taskId, isoDate) {
+      const task = (appData.tasks || []).find(t => t.id === taskId);
+      if (!task) return;
+
+      if (!appData.completions) appData.completions = {};
+      if (!appData.history) appData.history = [];
+
+      const key = getCompletionKey(taskId, isoDate);
+      const dateObj = parseIsoDate(isoDate);
+      const effMemberId = getEffectiveAssigneeId(task, dateObj);
+      const member = (appData.members || []).find(m => m.id === effMemberId);
+      const points = EFFORT_META[task.effort]?.points || 10;
+
+      if (appData.completions[key]) {
+        delete appData.completions[key];
+        appData.history = appData.history.filter(h => h.key !== key);
+        showToast(`Tarefa reaberta: ${task.name}`);
+      } else {
+        appData.completions[key] = {
+          memberId: effMemberId,
+          completedAt: Date.now(),
+          points,
+          taskName: task.name,
+          room: task.room
+        };
+        appData.history.unshift({
+          key,
+          taskId: task.id,
+          taskName: task.name,
+          room: task.room,
+          memberId: effMemberId,
+          memberName: member ? member.name : 'Família',
+          points,
+          completedAt: Date.now()
+        });
+
+        // Verifica se todas as tarefas de hoje foram concluídas para disparar confete!
+        const todayIso = formatIsoDate(new Date());
+        if (isoDate === todayIso) {
+          const todayTasks = (appData.tasks || []).filter(t => doesTaskOccurOnDate(t, new Date()));
+          const allDone = todayTasks.length > 0 && todayTasks.every(t => Boolean(appData.completions[getCompletionKey(t.id, todayIso)]));
+          if (allDone) {
+            launchConfetti();
+            showToast('🎉 Parabéns! Todas as tarefas de hoje foram concluídas!');
+          } else {
+            showToast(`✅ Concluída! +${points} pts para ${member ? member.name : 'a casa'}`);
+          }
+        } else {
+          showToast(`✅ Tarefa concluída!`);
+        }
+      }
+
+      saveFamilyData(true);
+    }
+
+    function openTaskModal(taskToEdit = null) {
+      const modal = document.getElementById('modal-task');
+      const title = document.getElementById('modal-task-title');
+      document.getElementById('form-task').reset();
+
+      if (taskToEdit) {
+        title.textContent = 'Editar Tarefa';
+        document.getElementById('task-id').value = taskToEdit.id;
+        document.getElementById('task-name').value = taskToEdit.name;
+        document.getElementById('task-room').value = taskToEdit.room;
+        document.getElementById('task-assignee').value = taskToEdit.assigneeId || '';
+        document.getElementById('task-frequency').value = taskToEdit.frequency;
+        document.getElementById('task-duration').value = taskToEdit.duration || 20;
+        document.getElementById('task-monthday').value = taskToEdit.monthDay || 5;
+        document.getElementById('task-once-date').value = taskToEdit.onceDate || formatIsoDate(new Date());
+        document.getElementById('task-rotate').checked = Boolean(taskToEdit.rotateWeekly);
+        document.getElementById('task-adult-only').checked = Boolean(taskToEdit.adultOnly);
+        document.getElementById('task-notes').value = taskToEdit.notes || '';
+
+        const effortRadio = document.querySelector(`input[name="task-effort"][value="${taskToEdit.effort || 2}"]`);
+        if (effortRadio) effortRadio.checked = true;
+
+        const daysSet = new Set((taskToEdit.weekdays || []).map(Number));
+        document.querySelectorAll('input[name="task-weekdays"]').forEach(cb => {
+          cb.checked = daysSet.has(Number(cb.value));
+        });
+      } else {
+        title.textContent = 'Nova Tarefa Doméstica';
+        document.getElementById('task-id').value = '';
+        document.getElementById('task-once-date').value = formatIsoDate(new Date());
+      }
+
+      updateFrequencyConditionalFields();
+      modal.classList.remove('hidden');
+    }
+
+    function updateFrequencyConditionalFields() {
+      const freq = document.getElementById('task-frequency').value;
+      document.getElementById('task-days-wrapper').classList.toggle('hidden', !(freq === 'semanal' || freq === 'quinzenal'));
+      document.getElementById('task-monthday-wrapper').classList.toggle('hidden', freq !== 'mensal');
+      document.getElementById('task-once-wrapper').classList.toggle('hidden', freq !== 'unica');
+    }
+
+    function renderMemberModalPickers() {
+      const emojiGrid = document.getElementById('emoji-picker-grid');
+      emojiGrid.innerHTML = AVATAR_EMOJIS.map(em => `
+        <button type="button" data-pick-emoji="${em}" class="p-2 rounded-xl text-xl border ${selectedEmoji === em ? 'border-brand-600 bg-brand-50 dark:bg-brand-900/40' : 'border-stone-200 dark:border-stone-700'}">
+          ${em}
+        </button>
+      `).join('');
+
+      const colorGrid = document.getElementById('color-picker-grid');
+      colorGrid.innerHTML = PROFILE_COLORS.map(c => `
+        <button type="button" data-pick-color="${c.hex}" class="h-9 rounded-xl border-2 flex items-center justify-center ${selectedColor === c.hex ? 'border-stone-900 dark:border-white scale-105' : 'border-transparent'}" style="background-color: ${c.hex}">
+          ${selectedColor === c.hex ? '<span class="text-white text-xs font-bold">✓</span>' : ''}
+        </button>
+      `).join('');
+    }
+
+    function openMemberModal(memberToEdit = null) {
+      const modal = document.getElementById('modal-member');
+      document.getElementById('form-member').reset();
+
+      if (memberToEdit) {
+        document.getElementById('modal-member-title').textContent = 'Editar Membro';
+        document.getElementById('member-id').value = memberToEdit.id;
+        document.getElementById('member-name').value = memberToEdit.name;
+        const roleRadio = document.querySelector(`input[name="member-role"][value="${memberToEdit.role || 'adult'}"]`);
+        if (roleRadio) roleRadio.checked = true;
+        selectedEmoji = memberToEdit.emoji || AVATAR_EMOJIS[0];
+        selectedColor = memberToEdit.color || PROFILE_COLORS[0].hex;
+      } else {
+        document.getElementById('modal-member-title').textContent = 'Novo Membro da Família';
+        document.getElementById('member-id').value = '';
+        selectedEmoji = AVATAR_EMOJIS[Math.floor(Math.random() * AVATAR_EMOJIS.length)];
+        selectedColor = PROFILE_COLORS[(appData.members?.length || 0) % PROFILE_COLORS.length].hex;
+      }
+
+      renderMemberModalPickers();
+      modal.classList.remove('hidden');
+    }
+
+    // ============================================================================
+    // 15. REGISTRO DE EVENTOS GLOBAIS E FORMULÁRIOS
+    // ============================================================================
+    function setupEventListeners() {
+      // Alternância de Abas Inferiores
+      document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-tab');
+          switchMainTab(target);
+        });
+      });
+
+      // Botões de atalho para abas
+      document.querySelectorAll('[data-goto-tab]').forEach(btn => {
+        btn.addEventListener('click', () => switchMainTab(btn.getAttribute('data-goto-tab')));
+      });
+
+      // Sub-abas dentro de Tarefas
+      document.querySelectorAll('.task-subtab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentTaskSubtab = btn.getAttribute('data-task-subtab');
+          document.querySelectorAll('.task-subtab-btn').forEach(b => {
+            b.className = 'task-subtab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700';
+          });
+          btn.className = 'task-subtab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-brand-600 text-white';
+
+          document.getElementById('subtab-active').classList.toggle('hidden', currentTaskSubtab !== 'active');
+          document.getElementById('subtab-library').classList.toggle('hidden', currentTaskSubtab !== 'library');
+          document.getElementById('subtab-checklists').classList.toggle('hidden', currentTaskSubtab !== 'checklists');
+        });
+      });
+
+      // Sub-seções dentro de Mais
+      document.querySelectorAll('.more-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentMoreSection = btn.getAttribute('data-more-section');
+          document.querySelectorAll('.more-nav-btn').forEach(b => {
+            b.className = 'more-nav-btn p-3 rounded-2xl bg-white dark:bg-warm-800 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2';
+          });
+          btn.className = 'more-nav-btn p-3 rounded-2xl bg-brand-600 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm';
+
+          document.querySelectorAll('.more-panel').forEach(p => p.classList.add('hidden'));
+          document.getElementById(`more-${currentMoreSection}`).classList.remove('hidden');
+        });
+      });
+
+      // Filtros compartilhados
+      ['filter-member', 'filter-room', 'filter-status'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => renderAll());
+      });
+
+      // Navegação de Semanas
+      document.getElementById('btn-prev-week').addEventListener('click', () => { weekOffset--; renderWeekTab(); });
+      document.getElementById('btn-current-week').addEventListener('click', () => { weekOffset = 0; renderWeekTab(); });
+      document.getElementById('btn-next-week').addEventListener('click', () => { weekOffset++; renderWeekTab(); });
+
+      // Botões de Nova Tarefa e Divisão Justa
+      document.getElementById('btn-quick-new-task').addEventListener('click', () => openTaskModal());
+      document.getElementById('btn-new-task-catalog').addEventListener('click', () => openTaskModal());
+      document.getElementById('btn-auto-distribute-top').addEventListener('click', () => autoDistributeTasksFairly());
+      document.getElementById('btn-auto-distribute-main').addEventListener('click', () => autoDistributeTasksFairly());
+
+      // Girar Rodízio Manualmente
+      document.getElementById('btn-rotate-weekly-now').addEventListener('click', () => {
+        if (!appData.settings) appData.settings = {};
+        appData.settings.rotationOffset = Number(appData.settings.rotationOffset || 0) + 1;
+        saveFamilyData(true);
+        showToast('🔄 Rodízio semanal avançado para o próximo membro!');
+      });
+
+      // Botão Novo Membro
+      document.getElementById('btn-add-member').addEventListener('click', () => openMemberModal());
+
+      // Seletor de Frequência no Modal de Tarefa
+      document.getElementById('task-frequency').addEventListener('change', updateFrequencyConditionalFields);
+
+      // Seletor de Checklist por cômodo
+      document.getElementById('checklist-mode-select').addEventListener('change', renderRoomChecklists);
+
+      // Fechar Modais
+      document.querySelectorAll('[data-close-modal]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById(btn.getAttribute('data-close-modal')).classList.add('hidden');
+        });
+      });
+
+      // Salvar Tarefa
+      document.getElementById('form-task').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('task-id').value;
+        const weekdays = [...document.querySelectorAll('input[name="task-weekdays"]:checked')].map(cb => Number(cb.value));
+        const effortRadio = document.querySelector('input[name="task-effort"]:checked');
+
+        const payload = {
+          id: id || `tsk-${Date.now()}`,
+          name: document.getElementById('task-name').value.trim(),
+          room: document.getElementById('task-room').value,
+          assigneeId: document.getElementById('task-assignee').value,
+          frequency: document.getElementById('task-frequency').value,
+          duration: Number(document.getElementById('task-duration').value) || 20,
+          weekdays: weekdays.length > 0 ? weekdays : [1],
+          monthDay: Number(document.getElementById('task-monthday').value) || 5,
+          onceDate: document.getElementById('task-once-date').value || formatIsoDate(new Date()),
+          effort: Number(effortRadio ? effortRadio.value : 2),
+          rotateWeekly: document.getElementById('task-rotate').checked,
+          adultOnly: document.getElementById('task-adult-only').checked,
+          notes: document.getElementById('task-notes').value.trim(),
+          createdAt: Date.now()
+        };
+
+        if (id) {
+          const idx = appData.tasks.findIndex(t => t.id === id);
+          if (idx >= 0) appData.tasks[idx] = payload;
+        } else {
+          appData.tasks.push(payload);
+        }
+
+        document.getElementById('modal-task').classList.add('hidden');
+        saveFamilyData(true);
+        showToast('💾 Tarefa salva com sucesso!');
+      });
+
+      // Salvar Membro
+      document.getElementById('form-member').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('member-id').value;
+        const roleRadio = document.querySelector('input[name="member-role"]:checked');
+        const payload = {
+          id: id || `mem-${Date.now()}`,
+          name: document.getElementById('member-name').value.trim(),
+          role: roleRadio ? roleRadio.value : 'adult',
+          emoji: selectedEmoji,
+          color: selectedColor
+        };
+
+        if (id) {
+          const idx = appData.members.findIndex(m => m.id === id);
+          if (idx >= 0) appData.members[idx] = payload;
+        } else {
+          appData.members.push(payload);
+        }
+
+        document.getElementById('modal-member').classList.add('hidden');
+        saveFamilyData(true);
+        showToast('👨‍👩‍👧‍👦 Membro da família salvo!');
+      });
+
+      // Form de Troca de Responsável
+      document.getElementById('form-swap').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const taskId = document.getElementById('swap-task-id').value;
+        const targetMemberId = document.getElementById('swap-target-member').value;
+        const mode = document.querySelector('input[name="swap-mode"]:checked')?.value || 'direct';
+        const message = document.getElementById('swap-message').value.trim();
+
+        const task = (appData.tasks || []).find(t => t.id === taskId);
+        if (!task) return;
+
+        if (mode === 'direct') {
+          task.assigneeId = targetMemberId;
+          task.rotateWeekly = false; // Fixa manualmente
+          showToast('🔄 Responsável alterado!');
+        } else {
+          if (!appData.swapRequests) appData.swapRequests = [];
+          appData.swapRequests.push({
+            id: `swp-${Date.now()}`,
+            taskId: task.id,
+            fromMemberId: getEffectiveAssigneeId(task, new Date()),
+            toMemberId: targetMemberId,
+            message,
+            createdAt: Date.now()
+          });
+          showToast('📨 Pedido de troca enviado para a tela Hoje!');
+        }
+
+        document.getElementById('modal-swap').classList.add('hidden');
+        saveFamilyData(true);
+      });
+
+      // Lista de Compras
+      document.getElementById('form-shopping').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const textEl = document.getElementById('shopping-item-input');
+        const qtyEl = document.getElementById('shopping-qty-input');
+        if (!appData.shoppingList) appData.shoppingList = [];
+        appData.shoppingList.unshift({
+          id: `shp-${Date.now()}`,
+          text: textEl.value.trim(),
+          qty: qtyEl.value.trim(),
+          bought: false
+        });
+        textEl.value = '';
+        qtyEl.value = '';
+        saveFamilyData(true);
+        showToast('🛒 Item adicionado à lista de compras!');
+      });
+
+      document.getElementById('btn-clear-bought').addEventListener('click', () => {
+        appData.shoppingList = (appData.shoppingList || []).filter(i => !i.bought);
+        saveFamilyData(true);
+        showToast('🧹 Itens comprados removidos!');
+      });
+
+      // Quadro de Avisos
+      document.getElementById('form-note').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const textEl = document.getElementById('note-text');
+        const authorEl = document.getElementById('note-author');
+        const color = document.querySelector('input[name="note-color"]:checked')?.value || 'amber';
+        if (!appData.notes) appData.notes = [];
+        appData.notes.unshift({
+          id: `not-${Date.now()}`,
+          text: textEl.value.trim(),
+          authorName: authorEl.value || 'Família',
+          color,
+          createdAt: Date.now()
+        });
+        textEl.value = '';
+        saveFamilyData(true);
+        showToast('📌 Recado fixado no mural da família!');
+      });
+
+      // Configurações (Gamificação e Rodízio)
+      document.getElementById('toggle-gamification').addEventListener('change', (e) => {
+        if (!appData.settings) appData.settings = {};
+        appData.settings.gamificationEnabled = e.target.checked;
+        saveFamilyData(true);
+      });
+
+      document.getElementById('toggle-auto-rotation').addEventListener('change', (e) => {
+        if (!appData.settings) appData.settings = {};
+        appData.settings.autoRotationEnabled = e.target.checked;
+        saveFamilyData(true);
+      });
+
+      // Código da Família
+      document.getElementById('btn-open-family-code').addEventListener('click', () => {
+        document.getElementById('input-family-code').value = familyCode;
+        document.getElementById('modal-family-code').classList.remove('hidden');
+      });
+
+      document.getElementById('form-family-code').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const raw = document.getElementById('input-family-code').value.trim().toLowerCase().replace(/[^a-z0-9\-_]/g, '-');
+        if (raw.length < 3) return;
+        familyCode = raw;
+        document.getElementById('modal-family-code').classList.add('hidden');
+        if (!currentUser) {
+          await connectWithFamilyEmailSession(familyCode);
+        } else {
+          subscribeToFamilyDocument(familyCode);
+        }
+        renderAll();
+        showToast(`🔑 Conectado ao código: ${familyCode}`);
+      });
+
+      document.getElementById('btn-copy-family-code').addEventListener('click', () => {
+        const input = document.getElementById('input-family-code');
+        input.select();
+        document.execCommand('copy');
+        showToast('📋 Código da família copiado!');
+      });
+
+      // Modal de Login / Cadastro por E-mail e Senha
+      const openAuthModal = () => {
+        updateAuthUI();
+        document.getElementById('auth-feedback-box').classList.add('hidden');
+        document.getElementById('modal-auth').classList.remove('hidden');
+      };
+      document.getElementById('btn-open-auth').addEventListener('click', openAuthModal);
+      document.getElementById('btn-banner-auth').addEventListener('click', openAuthModal);
+      document.getElementById('sync-badge').addEventListener('click', openAuthModal);
+
+      const setAuthTabMode = (mode) => {
+        authMode = mode;
+        const tabLogin = document.getElementById('tab-auth-login');
+        const tabRegister = document.getElementById('tab-auth-register');
+        const submitBtn = document.getElementById('btn-submit-auth');
+        document.getElementById('auth-feedback-box').classList.add('hidden');
+
+        if (mode === 'login') {
+          tabLogin.className = 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-warm-800 text-brand-600 dark:text-brand-400 shadow-2xs transition-all';
+          tabRegister.className = 'py-2 rounded-xl text-xs font-semibold text-stone-600 dark:text-stone-300 hover:text-stone-900 transition-all';
+          submitBtn.textContent = '🔐 Entrar com E-mail e Senha';
+        } else {
+          tabRegister.className = 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-warm-800 text-brand-600 dark:text-brand-400 shadow-2xs transition-all';
+          tabLogin.className = 'py-2 rounded-xl text-xs font-semibold text-stone-600 dark:text-stone-300 hover:text-stone-900 transition-all';
+          submitBtn.textContent = '✨ Criar Conta com E-mail e Senha';
+        }
+      };
+
+      document.getElementById('tab-auth-login').addEventListener('click', () => setAuthTabMode('login'));
+      document.getElementById('tab-auth-register').addEventListener('click', () => setAuthTabMode('register'));
+
+      document.getElementById('form-auth').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!auth) {
+          showToast('Firebase Auth não inicializado.', 'rose');
+          return;
+        }
+        const email = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value;
+        const feedbackBox = document.getElementById('auth-feedback-box');
+        const submitBtn = document.getElementById('btn-submit-auth');
+
+        feedbackBox.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Autenticando...';
+
+        try {
+          if (authMode === 'login') {
+            try {
+              const cred = await signInWithEmailAndPassword(auth, email, password);
+              currentUser = cred.user;
+              showToast('✅ Login realizado com sucesso!');
+            } catch (loginErr) {
+              // Se o usuário tentou entrar mas a conta ainda não existe, oferece ou cria na hora
+              const code = loginErr?.code || '';
+              if (code.includes('user-not-found')) {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                currentUser = cred.user;
+                showToast('✨ Conta criada e conectada com sucesso!');
+              } else {
+                throw loginErr;
+              }
+            }
+          } else {
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            currentUser = cred.user;
+            showToast('✨ Conta criada com sucesso!');
+          }
+
+          updateAuthUI();
+          subscribeToFamilyDocument(familyCode);
+          document.getElementById('modal-auth').classList.add('hidden');
+        } catch (err) {
+          const code = err?.code || '';
+          let msg = 'Não foi possível autenticar. Verifique seu e-mail e senha.';
+          if (code.includes('invalid-credential') || code.includes('wrong-password')) {
+            msg = 'E-mail ou senha incorretos. Se for seu primeiro acesso, clique na aba "Criar Nova Conta" acima!';
+          } else if (code.includes('email-already-in-use')) {
+            msg = 'Este e-mail já está cadastrado! Mude para a aba "Entrar na Conta".';
+          } else if (code.includes('weak-password')) {
+            msg = 'A senha deve ter pelo menos 6 caracteres.';
+          } else if (code.includes('invalid-email')) {
+            msg = 'Digite um endereço de e-mail válido.';
+          }
+          feedbackBox.className = 'p-3 rounded-xl text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200 border border-rose-200 dark:border-rose-800';
+          feedbackBox.textContent = msg;
+          feedbackBox.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          setAuthTabMode(authMode);
+        }
+      });
+
+      document.getElementById('btn-auto-family-auth').addEventListener('click', async () => {
+        const ok = await connectWithFamilyEmailSession(familyCode);
+        if (ok) {
+          subscribeToFamilyDocument(familyCode);
+          document.getElementById('modal-auth').classList.add('hidden');
+          showToast('⚡ Conectado na nuvem usando o código da família!');
+        } else {
+          showToast('Use o formulário acima para criar sua conta de e-mail e senha.', 'amber');
+        }
+      });
+
+      document.getElementById('btn-logout-auth').addEventListener('click', async () => {
+        if (!auth) return;
+        await signOut(auth);
+        currentUser = null;
+        updateAuthUI();
+        updateSyncBadge('local', 'Desconectado');
+        showToast('Você saiu da conta.');
+      });
+
+      // Carregar Exemplo (Seed)
+      const loadExampleHandler = () => {
+        appData = createSeedData();
+        saveFamilyData(true);
+        showToast('✨ Dados de exemplo da Família Silva carregados!');
+      };
+      document.getElementById('btn-seed-top').addEventListener('click', loadExampleHandler);
+      document.getElementById('btn-reset-demo').addEventListener('click', loadExampleHandler);
+
+      // Exportar e Importar JSON
+      document.getElementById('btn-export-json').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup-${familyCode}-${formatIsoDate(new Date())}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('⬇️ Backup JSON exportado!');
+      });
+
+      document.getElementById('input-import-json').addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            if (parsed && Array.isArray(parsed.members) && Array.isArray(parsed.tasks)) {
+              appData = parsed;
+              saveFamilyData(true);
+              showToast('⬆️ Backup importado com sucesso!');
+            } else {
+              showToast('Arquivo JSON inválido.', 'rose');
+            }
+          } catch (err) {
+            showToast('Erro ao ler arquivo JSON.', 'rose');
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      // Banner e Confete extra
+      document.getElementById('btn-dismiss-banner').addEventListener('click', () => {
+        document.getElementById('fallback-banner').classList.add('hidden');
+      });
+      document.getElementById('btn-retrigger-confetti').addEventListener('click', launchConfetti);
+
+      // Delegação de Eventos para botões dinâmicos
+      document.body.addEventListener('click', (e) => {
+        const toggleBtn = e.target.closest('[data-toggle-task]');
+        if (toggleBtn) {
+          toggleTaskCompletion(toggleBtn.getAttribute('data-toggle-task'), toggleBtn.getAttribute('data-toggle-date'));
+          return;
+        }
+
+        const editTaskBtn = e.target.closest('[data-edit-task]');
+        if (editTaskBtn) {
+          const t = (appData.tasks || []).find(x => x.id === editTaskBtn.getAttribute('data-edit-task'));
+          if (t) openTaskModal(t);
+          return;
+        }
+
+        const delTaskBtn = e.target.closest('[data-delete-task]');
+        if (delTaskBtn) {
+          const id = delTaskBtn.getAttribute('data-delete-task');
+          appData.tasks = (appData.tasks || []).filter(t => t.id !== id);
+          saveFamilyData(true);
+          showToast('🗑️ Tarefa removida.');
+          return;
+        }
+
+        const addSugBtn = e.target.closest('[data-add-suggested]');
+        if (addSugBtn) {
+          const sug = SUGGESTED_TASKS_LIBRARY[Number(addSugBtn.getAttribute('data-add-suggested'))];
+          if (sug) {
+            const defaultAssignee = (appData.members || [])[0]?.id || '';
+            appData.tasks.push({
+              id: `tsk-${Date.now()}-${Math.floor(Math.random() * 100)}`,
+              name: sug.name,
+              room: sug.room,
+              frequency: sug.frequency,
+              weekdays: sug.weekdays || [1],
+              monthDay: sug.monthDay || 5,
+              onceDate: formatIsoDate(new Date()),
+              duration: sug.duration,
+              effort: sug.effort,
+              assigneeId: defaultAssignee,
+              rotateWeekly: true,
+              adultOnly: sug.adultOnly,
+              notes: sug.notes,
+              createdAt: Date.now()
+            });
+            saveFamilyData(true);
+            showToast(`➕ "${sug.name}" adicionada às tarefas!`);
+          }
+          return;
+        }
+
+        const convertChecklistBtn = e.target.closest('[data-convert-checklist]');
+        if (convertChecklistBtn) {
+          const [mode, roomKey] = convertChecklistBtn.getAttribute('data-convert-checklist').split(':');
+          const items = ROOM_CHECKLISTS[mode]?.[roomKey] || [];
+          const defaultAssignee = (appData.members || [])[0]?.id || '';
+          items.forEach((itemName, idx) => {
+            appData.tasks.push({
+              id: `tsk-${Date.now()}-${idx}`,
+              name: itemName,
+              room: roomKey,
+              frequency: mode === 'diaria' ? 'diaria' : mode === 'semanal' ? 'semanal' : 'mensal',
+              weekdays: [6],
+              monthDay: 10,
+              onceDate: formatIsoDate(new Date()),
+              duration: 15,
+              effort: mode === 'mensal' ? 3 : mode === 'semanal' ? 2 : 1,
+              assigneeId: defaultAssignee,
+              rotateWeekly: true,
+              adultOnly: mode === 'mensal',
+              notes: `Importado do checklist (${mode})`,
+              createdAt: Date.now()
+            });
+          });
+          saveFamilyData(true);
+          showToast(`🧹 ${items.length} tarefas do cômodo adicionadas!`);
+          return;
+        }
+
+        const openSwapBtn = e.target.closest('[data-open-swap]');
+        if (openSwapBtn) {
+          const task = (appData.tasks || []).find(t => t.id === openSwapBtn.getAttribute('data-open-swap'));
+          if (task) {
+            document.getElementById('swap-task-id').value = task.id;
+            document.getElementById('swap-task-label').textContent = `Tarefa: ${task.name}`;
+            document.getElementById('swap-message').value = '';
+            document.getElementById('modal-swap').classList.remove('hidden');
+          }
+          return;
+        }
+
+        const acceptSwapBtn = e.target.closest('[data-accept-swap]');
+        if (acceptSwapBtn) {
+          const swId = acceptSwapBtn.getAttribute('data-accept-swap');
+          const sw = (appData.swapRequests || []).find(s => s.id === swId);
+          if (sw) {
+            const task = (appData.tasks || []).find(t => t.id === sw.taskId);
+            if (task) {
+              task.assigneeId = sw.toMemberId;
+              task.rotateWeekly = false;
+            }
+            appData.swapRequests = appData.swapRequests.filter(s => s.id !== swId);
+            saveFamilyData(true);
+            showToast('🤝 Troca aceita com sucesso!');
+          }
+          return;
+        }
+
+        const rejectSwapBtn = e.target.closest('[data-Reject-swap]');
+        if (rejectSwapBtn) {
+          const swId = rejectSwapBtn.getAttribute('data-Reject-swap');
+          appData.swapRequests = (appData.swapRequests || []).filter(s => s.id !== swId);
+          saveFamilyData(true);
+          showToast('Pedido de troca recusado.');
+          return;
+        }
+
+        const editMemBtn = e.target.closest('[data-edit-member]');
+        if (editMemBtn) {
+          const m = (appData.members || []).find(x => x.id === editMemBtn.getAttribute('data-edit-member'));
+          if (m) openMemberModal(m);
+          return;
+        }
+
+        const delMemBtn = e.target.closest('[data-delete-member]');
+        if (delMemBtn) {
+          if ((appData.members || []).length <= 1) {
+            showToast('A família precisa ter pelo menos 1 membro.', 'amber');
+            return;
+          }
+          const id = delMemBtn.getAttribute('data-delete-member');
+          appData.members = appData.members.filter(m => m.id !== id);
+          saveFamilyData(true);
+          showToast('Membro removido.');
+          return;
+        }
+
+        const pickEmojiBtn = e.target.closest('[data-pick-emoji]');
+        if (pickEmojiBtn) {
+          selectedEmoji = pickEmojiBtn.getAttribute('data-pick-emoji');
+          renderMemberModalPickers();
+          return;
+        }
+
+        const pickColorBtn = e.target.closest('[data-pick-color]');
+        if (pickColorBtn) {
+          selectedColor = pickColorBtn.getAttribute('data-pick-color');
+          renderMemberModalPickers();
+          return;
+        }
+
+        const delShopBtn = e.target.closest('[data-delete-shopping]');
+        if (delShopBtn) {
+          const id = delShopBtn.getAttribute('data-delete-shopping');
+          appData.shoppingList = (appData.shoppingList || []).filter(i => i.id !== id);
+          saveFamilyData(true);
+          return;
+        }
+
+        const delNoteBtn = e.target.closest('[data-delete-note]');
+        if (delNoteBtn) {
+          const id = delNoteBtn.getAttribute('data-delete-note');
+          appData.notes = (appData.notes || []).filter(n => n.id !== id);
+          saveFamilyData(true);
+          return;
+        }
+      });
+
+      // Delegação para checkboxes de listas (Compras e Checklists por cômodo)
+      document.body.addEventListener('change', (e) => {
+        const shopCheck = e.target.closest('[data-toggle-shopping]');
+        if (shopCheck) {
+          const item = (appData.shoppingList || []).find(i => i.id === shopCheck.getAttribute('data-toggle-shopping'));
+          if (item) {
+            item.bought = shopCheck.checked;
+            saveFamilyData(true);
+          }
+          return;
+        }
+
+        const roomCheck = e.target.closest('[data-checklist-key]');
+        if (roomCheck) {
+          if (!appData.checklistDone) appData.checklistDone = {};
+          const key = roomCheck.getAttribute('data-checklist-key');
+          appData.checklistDone[key] = roomCheck.checked;
+          saveFamilyData(true);
+        }
+      });
+    }
+
+    function switchMainTab(tabName) {
+      currentTab = tabName;
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      const targetPanel = document.getElementById(`tab-${tabName}`);
+      if (targetPanel) targetPanel.classList.remove('hidden');
+
+      // Oculta filtros compartilhados nas abas Família e Mais para deixar a tela mais limpa
+      const showSharedFilters = ['hoje', 'semana', 'tarefas'].includes(tabName);
+      document.getElementById('shared-filters').classList.toggle('hidden', !showSharedFilters);
+      document.getElementById('house-progress-card').classList.toggle('hidden', !['hoje', 'semana'].includes(tabName));
+
+      document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+        const isCurrent = btn.getAttribute('data-tab') === tabName;
+        btn.className = isCurrent
+          ? 'bottom-nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/50 font-semibold transition-all'
+          : 'bottom-nav-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 font-medium transition-all';
+      });
+    }
+
+    function initTheme() {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').textContent = '☀️';
+      }
+      document.getElementById('btn-theme-toggle').addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+      });
+    }
+
+    // Inicialização ao carregar a janela
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      setupEventListeners();
+      initDataLayer();
+    });
+  </script>
+</body>
+</html>
